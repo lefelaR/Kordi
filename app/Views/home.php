@@ -25,7 +25,12 @@
                 <p>Where Vision Meets Excellence, Effortlessly</p>
             </div>
         </div>
-        <nav>
+        <button class="menu-toggle" type="button" aria-label="Open navigation menu" aria-expanded="false" aria-controls="site-navigation">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav id="site-navigation">
             <a href="#home">HOME</a>
             <a href="#who">WHO WE ARE</a>
             <a href="#what">WHAT WE DO</a>

@@ -1,5 +1,26 @@
 const slideDelays = [7900, 9000, 11000];
 
+const menuToggle = document.querySelector('.menu-toggle');
+const navigation = document.querySelector('#site-navigation');
+
+if (menuToggle && navigation) {
+	const closeMenu = () => {
+		menuToggle.classList.remove('is-open');
+		navigation.classList.remove('is-open');
+		menuToggle.setAttribute('aria-expanded', 'false');
+		menuToggle.setAttribute('aria-label', 'Open navigation menu');
+	};
+
+	menuToggle.addEventListener('click', () => {
+		const isOpen = menuToggle.classList.toggle('is-open');
+		navigation.classList.toggle('is-open', isOpen);
+		menuToggle.setAttribute('aria-expanded', String(isOpen));
+		menuToggle.setAttribute('aria-label', isOpen ? 'Close navigation menu' : 'Open navigation menu');
+	});
+
+	navigation.querySelectorAll('a').forEach((link) => link.addEventListener('click', closeMenu));
+}
+
 document.querySelectorAll('[data-slider]').forEach((slider, sliderIndex) => {
 	const slides = slider.querySelectorAll('.gallery-slide');
 	const dots = slider.querySelectorAll('.slider-dot');

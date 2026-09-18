@@ -72,6 +72,23 @@ nav a:hover {
 	opacity: 0.6
 }
 
+.menu-toggle {
+	display: none;
+	border: 0;
+	background: transparent;
+	padding: 8px;
+	cursor: pointer;
+}
+
+.menu-toggle span {
+	display: block;
+	width: 26px;
+	height: 2px;
+	margin: 5px 0;
+	background: #111;
+	transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
 .btn-black {
 	background: #111;
 	color: #fff;
@@ -362,12 +379,76 @@ footer h2 {
 	}
 
 	header {
-		flex-direction: column;
-		gap: 15px
+		flex-direction: row;
+		gap: 0;
+		padding: 12px 5%;
+		min-height: 76px
+	}
+
+	.logo {
+		gap: 0
+	}
+
+	.logo-mark {
+		width: 78px;
+		height: 72px;
+	}
+
+	.logo img {
+		width: 160px;
+		height: 160px;
+		max-width: none;
+		transform: translate(-41px, -34px);
+	}
+
+	.logo-text {
+		display: none;
+	}
+
+	.menu-toggle {
+		display: block;
+		margin-left: auto;
+		z-index: 2;
 	}
 
 	nav {
-		flex-wrap: wrap;
-		justify-content: center
+		display: none;
+		position: absolute;
+		top: 100%;
+		left: 0;
+		right: 0;
+		padding: 20px 5% 24px;
+		background: #fff;
+		border-bottom: 1px solid #eee;
+		box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+		flex-direction: column;
+		align-items: stretch;
+		gap: 18px;
+		font-size: 13px;
+	}
+
+	nav.is-open {
+		display: flex;
+	}
+
+	nav a {
+		text-align: center;
+		padding: 6px;
+	}
+
+	nav .btn-black {
+		padding: 12px 22px;
+	}
+
+	.menu-toggle.is-open span:nth-child(1) {
+		transform: translateY(7px) rotate(45deg);
+	}
+
+	.menu-toggle.is-open span:nth-child(2) {
+		opacity: 0;
+	}
+
+	.menu-toggle.is-open span:nth-child(3) {
+		transform: translateY(-7px) rotate(-45deg);
 	}
 }
