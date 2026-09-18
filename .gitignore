@@ -1,0 +1,18 @@
+# Composer dependencies
+/vendor/
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# macOS metadata
+.DS_Store
+
+# Logs and local runtime files
+*.log
+*.pid
+
+# Editor and IDE settings
+.vscode/
+.idea/

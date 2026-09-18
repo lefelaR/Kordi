@@ -1,0 +1,13 @@
+{
+    "name": "kordicraft/creations",
+    "description": "Kordicraft Creations event planning website",
+    "type": "project",
+    "require": {
+        "php": "^8.3",
+        "phpmailer/phpmailer": "^7.1"
+    },
+    "config": {
+        "sort-packages": true,
+        "optimize-autoloader": true
+    }
+}
