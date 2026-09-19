@@ -49,12 +49,19 @@
     <section id="who">
         <h2 class="section-title">Who We Are</h2>
         <p class="section-sub">Kordicraft Creations is a Cape Town-based events company with nationwide reach. We bring
-            your vision to life, effortlessly, with elegance and precision. Whether it's a corporate function or private
+            your vision to life, effortlessly,  with elegance and precision. Whether it's a corporate function or private
             celebration, we craft unforgettable experiences.</p>
     </section>
 
-    <section id="what" class="services-section">
-        <h2 class="section-title">OUR SERVICES</h2>
+    <section id="goal" class="services-section">
+        <h2 class="section-title">Our Goal</h2>
+        <p class="section-sub">"You celebrate and we coordinate.
+        Your role is to enjoy the event. Our role is to make it flawless and serve you with excellence.
+        Excellence for us means professionalism, attention to detail, and seamless execution.</p>
+    </section>
+
+    <section id="what" >
+        <h2 class="section-title">What We Do</h2>
         <p class="section-sub">We specialize in planning and coordinating corporate and private events — from concept to
             execution. You celebrate and we coordinate, ensuring every detail is handled with care.</p>
         <div class="services">
@@ -70,15 +77,58 @@
                 <h3>Full Coordination</h3>
                 <p>Décor, catering, venue, entertainment</p>
             </div>
+            <div class="service-box service-box-list">
+                <h3>Venue sourcing</h3>
+                <p>Securing venues that fit style, capacity &amp; budget</p>
+            </div>
+            <div class="service-box service-box-list">
+                <h3>Theme concept &amp; décor</h3>
+                <p>Creative direction, styling, floral &amp; design details</p>
+            </div>
+            <div class="service-box service-box-list">
+                <h3>Vendor management</h3>
+                <p>Coordination, contracts, scheduling &amp; oversight</p>
+            </div>
+            <div class="service-box service-box-list">
+                <h3>Full programme</h3>
+                <p>Timeline planning and run-of-show development, seamless management from setup to close</p>
+            </div>
+            <div class="service-box service-box-list">
+                <h3>Guest experience</h3>
+                <p>Hospitality focused for memorable guest journey, summary, feedback and insights report</p>
+            </div>
         </div>
-        <div class="goal">
-            <h3>Our Goal</h3>
-            <p>"You celebrate and we coordinate — creating moments
-                that linger long after the last guest has left."</p>
+
+
+    </section>
+
+    <section id="why-choose" class="services-section">
+        
+        <div class="reasons-grid">
+            <div class="reason-column">
+                <h3 class="section-title">Why Choose Kordicraft</h3>
+                <ul>
+                    <li><strong>Industry Understanding</strong> - Deep expertise across corporate, social &amp; luxury events</li>
+                    <li><strong>Zero-Stress Promise</strong> - We handle the details so you can enjoy the moment</li>
+                    <li><strong>Nationwide Capability</strong> - Delivery across locations with reliable local partners</li>
+                    <li><strong>Attention to Detail</strong> - Every element considered, refined, and executed</li>
+                    <li><strong>Flexible &amp; Collaborative</strong> - Adaptive approach that works with you</li>
+                </ul>
+            </div>
+            <div class="reason-column">
+                <h3>Why Clients Choose Us</h3>
+                <ul>
+                    <li><strong>Strategic &amp; Creative Partnership</strong> - Insightful planning tailored to your brand and goals</li>
+                    <li><strong>Calm, Confident Execution</strong> - Proactive problem-solving with zero-stress delivery</li>
+                    <li><strong>Elevated Design &amp; Detail</strong> - Thoughtful styling with polished, cohesive aesthetics</li>
+                    <li><strong>Trusted Vendor Network</strong> - Vetted suppliers for quality and reliability</li>
+                    <li><strong>Transparent &amp; Collaborative</strong> - Clear communication, flexible and responsive</li>
+                </ul>
+            </div>
         </div>
     </section>
 
-    <section id="gallery">
+    <section id="gallery" class="services-section">
         <h2 class="section-title">GALLERY</h2>
         <p class="section-sub">A curated showcase of our beautifully crafted events</p>
         <div class="gallery-grid">

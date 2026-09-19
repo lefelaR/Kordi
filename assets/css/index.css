@@ -184,19 +184,78 @@ section {
 .services {
 	display: grid;
 	grid-template-columns: repeat(3, 1fr);
-	gap: 25px
+	gap: 25px;
+	align-items: stretch;
 }
 
 .service-box {
 	border: 1px solid #eee;
 	padding: 30px;
-	text-align: center
+	text-align: center;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	min-height: 200px;
+}
+
+.service-box-list {
+	padding: 24px 20px;
 }
 
 .service-box h3 {
 	font-family: 'Cormorant Garamond', serif;
 	font-size: 22px;
 	margin-bottom: 10px
+}
+
+.service-box p {
+	line-height: 1.6;
+	opacity: 0.8;
+}
+
+.reasons-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 35px;
+	max-width: 1100px;
+	margin: 0 auto;
+}
+
+.reason-column {
+	background: #f8f8f8;
+	border: 1px solid #eee;
+	padding: 30px 28px;
+	border-radius: 18px;
+}
+
+.reason-column h3 {
+	font-family: 'Cormorant Garamond', serif;
+	font-size: 28px;
+	margin-bottom: 18px;
+	text-align: center;
+}
+
+.reason-column ul {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	text-align: left;
+	line-height: 1.6;
+}
+
+.reason-column li {
+	padding-left: 18px;
+	position: relative;
+}
+
+.reason-column li::before {
+	content: '•';
+	position: absolute;
+	left: 0;
+	color: #111;
 }
 
 .gallery-grid {
@@ -343,24 +402,7 @@ footer h2 {
 	background: #fafafa;
 }
 
-.goal {
-	text-align: center;
-	margin-top: 50px;
-	max-width: 700px;
-	margin-left: auto;
-	margin-right: auto;
-}
 
-.goal h3 {
-	font-family: 'Cormorant Garamond';
-	font-size: 26px;
-}
-
-.goal p {
-	margin-top: 10px;
-	font-style: italic;
-	opacity: 0.8;
-}
 
 .contact-section {
 	background: #f5f5f5;
