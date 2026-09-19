@@ -6,3 +6,34 @@ services:
       - "${PORT:-8081}:80"
     volumes:
       - .:/var/www/html
+    environment:
+      DB_HOST: ${DB_HOST:-db}
+      DB_PORT: ${DB_PORT:-3306}
+      DB_NAME: ${DB_NAME:-kordi}
+      DB_USER: ${DB_USER:-kordi}
+      DB_PASSWORD: ${DB_PASSWORD:-kordi-local-password}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_NAME:-kordi}
+      MYSQL_USER: ${DB_USER:-kordi}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-kordi-local-password}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-kordi-root-local-password}
+    ports:
+      - "${DB_PORT_HOST:-3307}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  mysql_data:

@@ -166,7 +166,7 @@
             experience you will love.</p>
         <div class="contact-wrap">
             <div class="contact-info">
-                <p><strong>Email:</strong> contact@kordicraftcreations.co.za</p>
+                <p><strong>Email:</strong> info@kordicraftcreations.co.za</p>
                 <p><strong>Phone:</strong> 082 615 0153</p>
                 <p><strong>Location:</strong> Cape Town • Nationwide</p>
             </div>
