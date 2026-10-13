@@ -18,6 +18,12 @@ class DashboardController
         }
 
         $userEmail = $this->auth->email();
+        $pageTitle = 'Dashboard | Kordicraft Creations';
+
+        ob_start();
         require __DIR__ . '/../Views/dashboard.php';
+        $content = ob_get_clean();
+
+        require __DIR__ . '/../Views/layouts/dashboard.php';
     }
 }

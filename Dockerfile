@@ -15,4 +15,9 @@ RUN composer install --no-dev --no-interaction --prefer-dist
 
 COPY . /var/www/html/
 
+COPY docker-entrypoint.sh /usr/local/bin/kordi-entrypoint.sh
+RUN chmod +x /usr/local/bin/kordi-entrypoint.sh
+ENTRYPOINT ["kordi-entrypoint.sh"]
+CMD ["apache2-foreground"]
+
 EXPOSE 80
