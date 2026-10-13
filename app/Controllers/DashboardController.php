@@ -5,10 +5,11 @@ namespace App\Controllers;
 use App\Config\Database;
 use App\Models\Auth;
 use App\Models\Event;
+use App\Models\Vendor;
 
 class DashboardController
 {
-    public function __construct(private Auth $auth, private Event $events)
+    public function __construct(private Auth $auth, private Event $events, private Vendor $vendors)
     {
     }
 
@@ -86,11 +87,34 @@ class DashboardController
             }
             $events = $eventCount === 0 ? [] : $this->events->page($eventPage, $perPage);
             $eventStatusCounts = $this->events->statusCounts();
-            $eventPageLinks = $this->eventPageLinks($eventPage, $eventPageCount);
+            $eventPageLinks = $this->pageLinks($eventPage, $eventPageCount);
             $eventRangeStart = (($eventPage - 1) * $perPage) + 1;
             $eventRangeEnd = min($eventCount, $eventPage * $perPage);
         }
 
+        $vendorCount = in_array($section, ['overview', 'vendors'], true) ? $this->vendors->count() : 0;
+        $vendors = [];
+        $vendorPage = 1;
+        $vendorPageCount = 1;
+        $vendorPageLinks = [1];
+        $vendorRangeStart = 0;
+        $vendorRangeEnd = 0;
+
+        if ($section === 'vendors') {
+            $perPage = 10;
+            $vendorPageCount = max(1, (int) ceil($vendorCount / $perPage));
+            $requestedPage = filter_input(INPUT_GET, 'page', FILTER_VALIDATE_INT);
+            $vendorPage = is_int($requestedPage) && $requestedPage > 0 ? min($requestedPage, $vendorPageCount) : 1;
+            if (isset($_GET['page']) && (!is_int($requestedPage) || $requestedPage !== $vendorPage)) {
+                $location = $vendorPage === 1 ? '/dashboard/vendors' : '/dashboard/vendors?page=' . $vendorPage;
+                header('Location: ' . $location);
+                exit;
+            }
+            $vendors = $vendorCount === 0 ? [] : $this->vendors->page($vendorPage, $perPage);
+            $vendorPageLinks = $this->pageLinks($vendorPage, $vendorPageCount);
+            $vendorRangeStart = (($vendorPage - 1) * $perPage) + 1;
+            $vendorRangeEnd = min($vendorCount, $vendorPage * $perPage);
+        }
         $enquiries = in_array($section, ['overview', 'enquiries'], true) ? $this->enquiries() : [];
         $pageTitle = $pages[$section]['title'];
         $currentSection = $section;
@@ -109,7 +133,7 @@ class DashboardController
         require __DIR__ . '/../Views/layouts/dashboard.php';
     }
 
-    private function eventPageLinks(int $current, int $last): array
+    private function pageLinks(int $current, int $last): array
     {
         if ($last <= 7) {
             return range(1, $last);

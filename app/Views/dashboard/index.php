@@ -8,7 +8,7 @@ $sections = [
     [
         'href' => '/dashboard/vendors',
         'title' => 'Vendors',
-        'summary' => 'No vendors yet.',
+        'summary' => $vendorCount === 0 ? 'No vendors yet.' : $vendorCount . ($vendorCount === 1 ? ' vendor.' : ' vendors.'),
     ],
     [
         'href' => '/dashboard/enquiries',
