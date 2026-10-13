@@ -14,7 +14,7 @@ Use the layouts at https://www.shadcnblocks.com/blocks/dashboard as the referenc
 
 ## Shell
 
-The dashboard template is `app/Views/layouts/dashboard.php`. Its only chrome is the top navigation from `app/Views/includes/dashboard-nav.php`. Do not add a sidebar. Page content is rendered into the template's main area.
+The dashboard template is `app/Views/layouts/dashboard.php`. Its chrome is a left sidebar from `app/Views/includes/dashboard-side-nav.php`, with the section links and log out. Page content is rendered into the template's main area beside that sidebar.
 
 Cards and the canvas use the shadcn default theme tokens.
 

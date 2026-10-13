@@ -10,13 +10,12 @@
 </head>
 
 <body class="dashboard-body">
-    <header class="dashboard-topnav">
-        <a class="dashboard-brand" href="/dashboard">Kordicraft</a>
-        <?php require __DIR__ . '/../includes/dashboard-nav.php'; ?>
-    </header>
-    <main class="dashboard-content">
-        <?= $content ?>
-    </main>
+    <div class="dashboard-shell">
+        <?php require __DIR__ . '/../includes/dashboard-side-nav.php'; ?>
+        <main class="dashboard-content">
+            <?= $content ?>
+        </main>
+    </div>
 </body>
 
 </html>
