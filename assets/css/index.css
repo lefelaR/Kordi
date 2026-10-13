@@ -414,8 +414,7 @@ footer h2 {
 	width: 100%;
 }
 
-.auth-page,
-.dashboard-page {
+.auth-page {
 	min-height: 100vh;
 	background: #f5f5f5;
 }
@@ -447,23 +446,20 @@ footer h2 {
 	transform: translate(-30px, -28px);
 }
 
-.auth-eyebrow,
-.dashboard-number {
+.auth-eyebrow {
 	font-size: 11px;
 	letter-spacing: 2px;
 	color: #777;
 }
 
-.auth-card h1,
-.dashboard-content h1 {
+.auth-card h1 {
 	font-family: 'Cormorant Garamond', serif;
 	font-size: 48px;
 	font-weight: 400;
 	margin: 10px 0;
 }
 
-.auth-intro,
-.dashboard-welcome {
+.auth-intro {
 	color: #666;
 	line-height: 1.6;
 	margin-bottom: 28px;
@@ -486,8 +482,7 @@ footer h2 {
 	margin-top: 24px;
 }
 
-.auth-back,
-.dashboard-logout {
+.auth-back {
 	display: inline-block;
 	color: #111;
 	font-size: 12px;
@@ -495,48 +490,29 @@ footer h2 {
 	text-underline-offset: 4px;
 }
 
-.dashboard-header {
-	position: static;
-	padding: 22px 8%;
-}
-
-.dashboard-brand {
-	color: #111;
-	font-family: 'Cormorant Garamond', serif;
-	font-size: 22px;
-	letter-spacing: 3px;
-	text-decoration: none;
-}
-
-.dashboard-content {
-	max-width: 1100px;
-	margin: 0 auto;
-	padding: 90px 8%;
-}
-
-.dashboard-grid {
+.dashboard-shell {
 	display: grid;
-	grid-template-columns: repeat(3, 1fr);
-	gap: 24px;
-	margin-top: 48px;
+	grid-template-columns: 240px minmax(0, 1fr);
+	align-items: start;
 }
 
-.dashboard-panel {
-	padding: 30px;
+nav.dashboard-side-nav {
+	position: sticky;
+	top: 135px;
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	gap: 4px;
+	min-height: calc(100vh - 135px);
+	padding: 28px 20px;
 	background: #fff;
-	border: 1px solid #e7e7e7;
+	border-right: 1px solid #eee;
 }
 
-.dashboard-panel h2 {
-	font-family: 'Cormorant Garamond', serif;
-	font-size: 30px;
-	font-weight: 400;
-	margin: 14px 0 8px;
-}
-
-.dashboard-panel p {
-	color: #666;
-	line-height: 1.6;
+nav.dashboard-side-nav a {
+	display: block;
+	padding: 12px 14px;
+	text-align: left;
 }
 
 @media(max-width:800px) {
@@ -579,7 +555,7 @@ footer h2 {
 		z-index: 2;
 	}
 
-	nav {
+	header nav {
 		display: none;
 		position: absolute;
 		top: 100%;
@@ -595,16 +571,16 @@ footer h2 {
 		font-size: 13px;
 	}
 
-	nav.is-open {
+	header nav.is-open {
 		display: flex;
 	}
 
-	nav a {
+	header nav a {
 		text-align: center;
 		padding: 6px;
 	}
 
-	nav .btn-black {
+	header nav .btn-black {
 		padding: 12px 22px;
 	}
 
@@ -624,15 +600,18 @@ footer h2 {
 		padding: 32px 24px;
 	}
 
-	.dashboard-header {
-		align-items: center;
-	}
-
-	.dashboard-content {
-		padding: 60px 8%;
-	}
-
-	.dashboard-grid {
+	.dashboard-shell {
 		grid-template-columns: 1fr;
+	}
+
+	nav.dashboard-side-nav {
+		position: static;
+		min-height: 0;
+		border-right: 0;
+		border-bottom: 1px solid #eee;
+	}
+
+	nav.dashboard-side-nav a {
+		text-align: left;
 	}
 }
