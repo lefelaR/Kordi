@@ -10,6 +10,8 @@ class EventController
 {
     private const STATUSES = ['planned', 'confirmed', 'completed'];
 
+    private const FINANCES = ['quotes', 'invoiced', 'payment made'];
+
     public function __construct(private Auth $auth, private Event $events)
     {
     }
@@ -24,6 +26,7 @@ class EventController
         $title = '';
         $eventDate = '';
         $status = 'planned';
+        $finance = 'quotes';
         $attendants = '0';
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -32,10 +35,11 @@ class EventController
             $title = $input['title'];
             $eventDate = $input['eventDate'];
             $status = $input['status'];
+            $finance = $input['finance'];
             $attendants = $input['attendants'];
 
             if ($error === '') {
-                $this->events->create($title, $input['storedDate'], $status, $input['attendantCount']);
+                $this->events->create($title, $input['storedDate'], $status, $finance, $input['attendantCount']);
                 header('Location: ' . $this->eventsLocation());
                 exit;
             }
@@ -43,6 +47,11 @@ class EventController
 
         $pageTitle = 'Add event | Kordicraft Creations';
         $currentSection = 'events';
+        $breadcrumbs = [
+            ['label' => 'Dashboard', 'href' => '/dashboard'],
+            ['label' => 'Events', 'href' => '/dashboard/events'],
+            ['label' => 'Add event'],
+        ];
         $eventPage = $this->requestedPage();
         $formAction = '/events/add';
         $heading = 'Add event';
@@ -71,6 +80,7 @@ class EventController
         $title = (string) $event['title'];
         $eventDate = (string) ($event['event_date'] ?? '');
         $status = (string) $event['status'];
+        $finance = (string) $event['finance'];
         $attendants = (string) $event['attendants'];
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -79,10 +89,11 @@ class EventController
             $title = $input['title'];
             $eventDate = $input['eventDate'];
             $status = $input['status'];
+            $finance = $input['finance'];
             $attendants = $input['attendants'];
 
             if ($error === '') {
-                $this->events->update($id, $title, $input['storedDate'], $status, $input['attendantCount']);
+                $this->events->update($id, $title, $input['storedDate'], $status, $finance, $input['attendantCount']);
                 header('Location: ' . $this->eventsLocation());
                 exit;
             }
@@ -90,10 +101,16 @@ class EventController
 
         $pageTitle = 'Edit event | Kordicraft Creations';
         $currentSection = 'events';
+        $breadcrumbs = [
+            ['label' => 'Dashboard', 'href' => '/dashboard'],
+            ['label' => 'Events', 'href' => '/dashboard/events'],
+            ['label' => 'Edit event'],
+        ];
         $eventPage = $this->requestedPage();
         $formAction = '/events/' . $id . '/edit';
         $heading = 'Edit event';
         $summary = 'Update this event.';
+        $actionIcons = true;
 
         ob_start();
         require __DIR__ . '/../Views/dashboard/events/form.php';
@@ -145,6 +162,10 @@ class EventController
         http_response_code(404);
         $pageTitle = 'Not found | Kordicraft Creations';
         $currentSection = 'events';
+        $breadcrumbs = [
+            ['label' => 'Dashboard', 'href' => '/dashboard'],
+            ['label' => 'Not found'],
+        ];
 
         ob_start();
         require __DIR__ . '/../Views/dashboard/not-found.php';
@@ -178,6 +199,7 @@ class EventController
         $title = trim($_POST['title'] ?? '');
         $eventDate = trim($_POST['event_date'] ?? '');
         $status = $_POST['status'] ?? '';
+        $finance = $_POST['finance'] ?? '';
         $attendants = trim($_POST['attendants'] ?? '');
         $storedDate = null;
         $attendantCount = 0;
@@ -198,6 +220,10 @@ class EventController
             $error = 'Choose a status.';
         }
 
+        if ($error === '' && !in_array($finance, self::FINANCES, true)) {
+            $error = 'Choose a finance option.';
+        }
+
         if ($error === '' && ($attendants === '' || !preg_match('/^\d+$/', $attendants) || (int) $attendants > 1000000)) {
             $error = 'Enter the number of attendants as a whole number.';
         } elseif ($error === '') {
@@ -210,6 +236,7 @@ class EventController
             'eventDate' => $eventDate,
             'storedDate' => $storedDate,
             'status' => $status,
+            'finance' => $finance,
             'attendants' => $attendants,
             'attendantCount' => $attendantCount,
         ];

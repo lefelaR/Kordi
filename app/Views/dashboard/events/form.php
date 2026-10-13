@@ -28,9 +28,32 @@
                 <?php endforeach; ?>
             </select>
         </label>
+        <label>
+            Finance
+            <select name="finance">
+                <?php foreach (['quotes', 'invoiced', 'payment made'] as $option): ?>
+                    <option value="<?= htmlspecialchars($option, ENT_QUOTES, 'UTF-8') ?>"<?= $finance === $option ? ' selected' : '' ?>><?= htmlspecialchars($option, ENT_QUOTES, 'UTF-8') ?></option>
+                <?php endforeach; ?>
+            </select>
+        </label>
         <div class="dashboard-form-actions">
-            <button class="dashboard-button" type="submit">Save</button>
-            <a class="dashboard-button dashboard-button-secondary" href="<?= ($eventPage ?? 1) > 1 ? '/dashboard/events?page=' . (int) $eventPage : '/dashboard/events' ?>">Cancel</a>
+            <button class="dashboard-button<?= !empty($actionIcons) ? ' dashboard-button-with-icon' : '' ?>" type="submit">
+                <?php if (!empty($actionIcons)): ?>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M20 6 9 17l-5-5" />
+                    </svg>
+                <?php endif; ?>
+                Save
+            </button>
+            <a class="dashboard-button dashboard-button-secondary<?= !empty($actionIcons) ? ' dashboard-button-with-icon' : '' ?>" href="<?= ($eventPage ?? 1) > 1 ? '/dashboard/events?page=' . (int) $eventPage : '/dashboard/events' ?>">
+                <?php if (!empty($actionIcons)): ?>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M18 6 6 18" />
+                        <path d="m6 6 12 12" />
+                    </svg>
+                <?php endif; ?>
+                Cancel
+            </a>
         </div>
     </form>
 </section>

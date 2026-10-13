@@ -511,6 +511,18 @@ footer h2 {
 	--card-foreground: oklch(0.141 0.005 285.823);
 	--muted: oklch(0.967 0.001 286.375);
 	--destructive: oklch(0.577 0.245 27.325);
+	--status-planned: oklch(0.95 0.04 85);
+	--status-planned-foreground: oklch(0.42 0.08 75);
+	--status-confirmed: oklch(0.95 0.03 250);
+	--status-confirmed-foreground: oklch(0.4 0.1 255);
+	--status-completed: oklch(0.95 0.04 145);
+	--status-completed-foreground: oklch(0.4 0.08 150);
+	--finance-quotes: oklch(0.95 0.03 300);
+	--finance-quotes-foreground: oklch(0.4 0.1 300);
+	--finance-invoiced: oklch(0.95 0.04 45);
+	--finance-invoiced-foreground: oklch(0.42 0.1 45);
+	--finance-payment-made: oklch(0.95 0.04 190);
+	--finance-payment-made-foreground: oklch(0.38 0.08 190);
 	--input: oklch(0.92 0.004 286.32);
 	--ring: oklch(0.705 0.015 286.067);
 	min-height: 100vh;
@@ -563,7 +575,9 @@ footer h2 {
 }
 
 .dashboard-sidebar nav.dashboard-side-nav a {
-	display: block;
+	display: flex;
+	align-items: center;
+	gap: 8px;
 	padding: 8px 12px;
 	border-radius: var(--radius);
 	color: var(--sidebar-foreground);
@@ -571,6 +585,12 @@ footer h2 {
 	letter-spacing: 0;
 	text-align: left;
 	text-decoration: none;
+}
+
+.dashboard-sidebar nav.dashboard-side-nav a svg {
+	width: 16px;
+	height: 16px;
+	flex: none;
 }
 
 .dashboard-sidebar nav.dashboard-side-nav a[aria-current="page"],
@@ -581,6 +601,7 @@ footer h2 {
 }
 
 .dashboard-sidebar nav.dashboard-side-nav a.dashboard-nav-logout {
+	justify-content: center;
 	margin-top: auto;
 	background: var(--sidebar-primary);
 	color: var(--sidebar-primary-foreground);
@@ -599,8 +620,55 @@ footer h2 {
 	min-height: 100vh;
 }
 
+nav.dashboard-breadcrumb {
+	display: block;
+	padding: 24px 32px 0;
+	background: transparent;
+	border: 0;
+	box-shadow: none;
+	font-size: 14px;
+	letter-spacing: 0;
+}
+
+nav.dashboard-breadcrumb ol {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+nav.dashboard-breadcrumb a,
+nav.dashboard-breadcrumb [aria-current="page"] {
+	color: var(--muted-foreground);
+	font-weight: 400;
+	letter-spacing: 0;
+	text-decoration: none;
+}
+
+nav.dashboard-breadcrumb [aria-current="page"] {
+	color: var(--foreground);
+}
+
+nav.dashboard-breadcrumb a:hover {
+	color: var(--foreground);
+	opacity: 1;
+}
+
+nav.dashboard-breadcrumb .dashboard-breadcrumb-separator {
+	display: flex;
+	color: var(--muted-foreground);
+}
+
+nav.dashboard-breadcrumb .dashboard-breadcrumb-separator svg {
+	width: 14px;
+	height: 14px;
+}
+
 .dashboard-page {
-	padding: 32px;
+	padding: 16px 32px 32px;
 }
 
 .dashboard-page-header {
@@ -679,8 +747,31 @@ footer h2 {
 	gap: 8px;
 }
 
-.dashboard-actions .dashboard-button {
-	padding: 6px 10px;
+.dashboard-icon-button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	padding: 0;
+}
+
+.dashboard-icon-button svg {
+	display: block;
+	width: 16px;
+	height: 16px;
+}
+
+.dashboard-button-with-icon {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.dashboard-button-with-icon svg {
+	display: block;
+	width: 16px;
+	height: 16px;
 }
 
 .dashboard-actions select {
@@ -804,12 +895,48 @@ footer h2 {
 	margin-top: 24px;
 }
 
-.dashboard-status span {
-	padding: 6px 10px;
+.dashboard-status span,
+.dashboard-status-badge {
+	display: inline-block;
+	padding: 4px 10px;
 	border-radius: var(--radius);
 	background: var(--muted);
+	color: var(--foreground);
 	font-size: 13px;
 	font-weight: 500;
+}
+
+.dashboard-status span.dashboard-status-planned,
+.dashboard-status-badge.dashboard-status-planned {
+	background: var(--status-planned);
+	color: var(--status-planned-foreground);
+}
+
+.dashboard-status span.dashboard-status-confirmed,
+.dashboard-status-badge.dashboard-status-confirmed {
+	background: var(--status-confirmed);
+	color: var(--status-confirmed-foreground);
+}
+
+.dashboard-status span.dashboard-status-completed,
+.dashboard-status-badge.dashboard-status-completed {
+	background: var(--status-completed);
+	color: var(--status-completed-foreground);
+}
+
+.dashboard-status-badge.dashboard-finance-quotes {
+	background: var(--finance-quotes);
+	color: var(--finance-quotes-foreground);
+}
+
+.dashboard-status-badge.dashboard-finance-invoiced {
+	background: var(--finance-invoiced);
+	color: var(--finance-invoiced-foreground);
+}
+
+.dashboard-status-badge.dashboard-finance-payment-made {
+	background: var(--finance-payment-made);
+	color: var(--finance-payment-made-foreground);
 }
 
 .dashboard-table {
@@ -1010,6 +1137,10 @@ nav.dashboard-pagination span {
 
 	.dashboard-sidebar nav.dashboard-side-nav a.dashboard-nav-logout {
 		margin-top: 8px;
+	}
+
+	nav.dashboard-breadcrumb {
+		padding: 16px 16px 0;
 	}
 
 	.dashboard-page {

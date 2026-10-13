@@ -54,6 +54,10 @@ class DashboardController
             http_response_code(404);
             $pageTitle = 'Not found | Kordicraft Creations';
             $currentSection = '';
+            $breadcrumbs = [
+                ['label' => 'Dashboard', 'href' => '/dashboard'],
+                ['label' => 'Not found'],
+            ];
             ob_start();
             require __DIR__ . '/../Views/dashboard/not-found.php';
             $content = ob_get_clean();
@@ -90,6 +94,13 @@ class DashboardController
         $enquiries = in_array($section, ['overview', 'enquiries'], true) ? $this->enquiries() : [];
         $pageTitle = $pages[$section]['title'];
         $currentSection = $section;
+        $sectionLabel = trim(strtok($pageTitle, '|'));
+        $breadcrumbs = $section === 'overview'
+            ? [['label' => 'Dashboard']]
+            : [
+                ['label' => 'Dashboard', 'href' => '/dashboard'],
+                ['label' => $sectionLabel],
+            ];
 
         ob_start();
         require $pages[$section]['view'];
