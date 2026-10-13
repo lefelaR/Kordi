@@ -41,6 +41,10 @@ class DashboardController
                 'title' => 'Venues | Kordicraft Creations',
                 'view' => __DIR__ . '/../Views/dashboard/venues/index.php',
             ],
+            'companies' => [
+                'title' => 'Companies | Kordicraft Creations',
+                'view' => __DIR__ . '/../Views/dashboard/companies/index.php',
+            ],
             'documents' => [
                 'title' => 'Documents | Kordicraft Creations',
                 'view' => __DIR__ . '/../Views/dashboard/documents/index.php',

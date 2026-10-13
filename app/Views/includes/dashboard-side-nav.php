@@ -25,15 +25,20 @@ $dashboardLinks = [
         'href' => '/dashboard/venues',
         'icon' => '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" />',
     ],
+    'companies' => [
+        'label' => 'Companies',
+        'href' => '/dashboard/companies',
+        'icon' => '<path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" /><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" /><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2" /><path d="M10 6h4" /><path d="M10 10h4" /><path d="M10 14h4" /><path d="M10 18h4" />',
+    ],
     'documents' => [
         'label' => 'Documents',
         'href' => '/dashboard/documents',
         'icon' => '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" /><path d="M14 2v4a2 2 0 0 0 2 2h4" /><path d="M10 9H8" /><path d="M16 13H8" /><path d="M16 17H8" />',
         'children' => [
-            'proposals' => ['label' => 'Proposals', 'href' => '/dashboard/documents/proposals'],
+            // 'proposals' => ['label' => 'Proposals', 'href' => '/dashboard/documents/proposals'],
             'invoices' => ['label' => 'Invoices', 'href' => '/dashboard/documents/invoices'],
-            'proofs' => ['label' => 'Proofs', 'href' => '/dashboard/documents/proofs'],
-            'acknowledgement' => ['label' => 'Acknowledgement', 'href' => '/dashboard/documents/acknowledgement'],
+            // 'proofs' => ['label' => 'Proofs', 'href' => '/dashboard/documents/proofs'],
+            // 'acknowledgement' => ['label' => 'Acknowledgement', 'href' => '/dashboard/documents/acknowledgement'],
         ],
     ],
     'contacts' => [
