@@ -4,12 +4,13 @@ namespace App\Controllers;
 
 use App\Config\Database;
 use App\Models\Auth;
+use App\Models\Company;
 use App\Models\Event;
 use App\Models\Vendor;
 
 class DashboardController
 {
-    public function __construct(private Auth $auth, private Event $events, private Vendor $vendors)
+    public function __construct(private Auth $auth, private Event $events, private Vendor $vendors, private Company $companies)
     {
     }
 
@@ -146,6 +147,31 @@ class DashboardController
             $vendorRangeStart = (($vendorPage - 1) * $perPage) + 1;
             $vendorRangeEnd = min($vendorCount, $vendorPage * $perPage);
         }
+
+        $companyCount = $section === 'companies' ? $this->companies->count() : 0;
+        $companies = [];
+        $companyPage = 1;
+        $companyPageCount = 1;
+        $companyPageLinks = [1];
+        $companyRangeStart = 0;
+        $companyRangeEnd = 0;
+
+        if ($section === 'companies') {
+            $perPage = 10;
+            $companyPageCount = max(1, (int) ceil($companyCount / $perPage));
+            $requestedPage = filter_input(INPUT_GET, 'page', FILTER_VALIDATE_INT);
+            $companyPage = is_int($requestedPage) && $requestedPage > 0 ? min($requestedPage, $companyPageCount) : 1;
+            if (isset($_GET['page']) && (!is_int($requestedPage) || $requestedPage !== $companyPage)) {
+                $location = $companyPage === 1 ? '/dashboard/companies' : '/dashboard/companies?page=' . $companyPage;
+                header('Location: ' . $location);
+                exit;
+            }
+            $companies = $companyCount === 0 ? [] : $this->companies->page($companyPage, $perPage);
+            $companyPageLinks = $this->pageLinks($companyPage, $companyPageCount);
+            $companyRangeStart = (($companyPage - 1) * $perPage) + 1;
+            $companyRangeEnd = min($companyCount, $companyPage * $perPage);
+        }
+
         $enquiries = in_array($section, ['overview', 'enquiries'], true) ? $this->enquiries() : [];
         $currentSection = $section;
         $currentDocument = $subsection ?? '';

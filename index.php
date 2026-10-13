@@ -6,11 +6,13 @@ require __DIR__ . '/app/Models/EnquiryMailer.php';
 require __DIR__ . '/app/Models/Auth.php';
 require __DIR__ . '/app/Models/Event.php';
 require __DIR__ . '/app/Models/Vendor.php';
+require __DIR__ . '/app/Models/Company.php';
 require __DIR__ . '/app/Controllers/HomeController.php';
 require __DIR__ . '/app/Controllers/AuthController.php';
 require __DIR__ . '/app/Controllers/DashboardController.php';
 require __DIR__ . '/app/Controllers/EventController.php';
 require __DIR__ . '/app/Controllers/VendorController.php';
+require __DIR__ . '/app/Controllers/CompanyController.php';
 
 $requestPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
 $auth = new App\Models\Auth();
@@ -31,6 +33,9 @@ if ($requestPath === '/login') {
     } else {
         $vendorController->delete($vendorId);
     }
+} elseif ($requestPath === '/companies/add') {
+    $companies = new App\Models\Company(App\Config\Database::connection());
+    (new App\Controllers\CompanyController($auth, $companies))->add();
 } elseif ($requestPath === '/events/add') {
     $events = new App\Models\Event(App\Config\Database::connection());
     (new App\Controllers\EventController($auth, $events))->add();
@@ -49,12 +54,14 @@ if ($requestPath === '/login') {
     $database = App\Config\Database::connection();
     $events = new App\Models\Event($database);
     $vendors = new App\Models\Vendor($database);
-    (new App\Controllers\DashboardController($auth, $events, $vendors))->show('documents', $matches[1]);
+    $companies = new App\Models\Company($database);
+    (new App\Controllers\DashboardController($auth, $events, $vendors, $companies))->show('documents', $matches[1]);
 } elseif (preg_match('#^/dashboard(?:/([a-z]+))?$#', $requestPath, $matches) === 1) {
     $database = App\Config\Database::connection();
     $events = new App\Models\Event($database);
     $vendors = new App\Models\Vendor($database);
-    (new App\Controllers\DashboardController($auth, $events, $vendors))->show($matches[1] ?? 'overview');
+    $companies = new App\Models\Company($database);
+    (new App\Controllers\DashboardController($auth, $events, $vendors, $companies))->show($matches[1] ?? 'overview');
 } else {
     (new App\Controllers\HomeController(new App\Models\EnquiryMailer()))->handle();
 }
