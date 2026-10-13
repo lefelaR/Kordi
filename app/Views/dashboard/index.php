@@ -3,7 +3,7 @@ $sections = [
     [
         'href' => '/dashboard/events',
         'title' => 'Events',
-        'summary' => $events === [] ? 'No events yet.' : count($events) . (count($events) === 1 ? ' event.' : ' events.'),
+        'summary' => $eventCount === 0 ? 'No events yet.' : $eventCount . ($eventCount === 1 ? ' event.' : ' events.'),
     ],
     [
         'href' => '/dashboard/vendors',

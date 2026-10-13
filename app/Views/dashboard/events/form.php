@@ -1,12 +1,13 @@
 <section class="dashboard-page">
     <header class="dashboard-page-header">
-        <h1>Add event</h1>
-        <p>Save an event to the events list.</p>
+        <h1><?= htmlspecialchars($heading, ENT_QUOTES, 'UTF-8') ?></h1>
+        <p><?= htmlspecialchars($summary, ENT_QUOTES, 'UTF-8') ?></p>
     </header>
     <?php if ($error !== ''): ?>
         <p class="dashboard-form-error"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></p>
     <?php endif; ?>
-    <form class="dashboard-form" method="post" action="/events/add">
+    <form class="dashboard-form" method="post" action="<?= htmlspecialchars($formAction, ENT_QUOTES, 'UTF-8') ?>">
+        <input type="hidden" name="page" value="<?= (int) ($eventPage ?? 1) ?>">
         <label>
             Title
             <input type="text" name="title" maxlength="180" required value="<?= htmlspecialchars($title, ENT_QUOTES, 'UTF-8') ?>">
@@ -14,6 +15,10 @@
         <label>
             Date
             <input type="date" name="event_date" value="<?= htmlspecialchars($eventDate, ENT_QUOTES, 'UTF-8') ?>">
+        </label>
+        <label>
+            Attendants
+            <input type="number" name="attendants" min="0" max="1000000" required value="<?= htmlspecialchars((string) $attendants, ENT_QUOTES, 'UTF-8') ?>">
         </label>
         <label>
             Status
@@ -25,7 +30,7 @@
         </label>
         <div class="dashboard-form-actions">
             <button class="dashboard-button" type="submit">Save</button>
-            <a class="dashboard-button dashboard-button-secondary" href="/dashboard/events">Cancel</a>
+            <a class="dashboard-button dashboard-button-secondary" href="<?= ($eventPage ?? 1) > 1 ? '/dashboard/events?page=' . (int) $eventPage : '/dashboard/events' ?>">Cancel</a>
         </div>
     </form>
 </section>

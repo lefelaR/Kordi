@@ -20,6 +20,17 @@ if ($requestPath === '/login') {
 } elseif ($requestPath === '/events/add') {
     $events = new App\Models\Event(App\Config\Database::connection());
     (new App\Controllers\EventController($auth, $events))->add();
+} elseif (preg_match('#^/events/(\d+)/(edit|status|delete)$#', $requestPath, $matches) === 1) {
+    $events = new App\Models\Event(App\Config\Database::connection());
+    $eventController = new App\Controllers\EventController($auth, $events);
+    $eventId = (int) $matches[1];
+    if ($matches[2] === 'edit') {
+        $eventController->edit($eventId);
+    } elseif ($matches[2] === 'status') {
+        $eventController->updateStatus($eventId);
+    } else {
+        $eventController->delete($eventId);
+    }
 } elseif (preg_match('#^/dashboard(?:/([a-z]+))?$#', $requestPath, $matches) === 1) {
     $events = new App\Models\Event(App\Config\Database::connection());
     (new App\Controllers\DashboardController($auth, $events))->show($matches[1] ?? 'overview');

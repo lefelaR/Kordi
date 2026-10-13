@@ -61,7 +61,32 @@ class DashboardController
             return;
         }
 
-        $events = in_array($section, ['overview', 'events'], true) ? $this->events->all() : [];
+        $eventCount = in_array($section, ['overview', 'events'], true) ? $this->events->count() : 0;
+        $events = [];
+        $eventStatusCounts = [];
+        $eventPage = 1;
+        $eventPageCount = 1;
+        $eventPageLinks = [1];
+        $eventRangeStart = 0;
+        $eventRangeEnd = 0;
+
+        if ($section === 'events') {
+            $perPage = 10;
+            $eventPageCount = max(1, (int) ceil($eventCount / $perPage));
+            $requestedPage = filter_input(INPUT_GET, 'page', FILTER_VALIDATE_INT);
+            $eventPage = is_int($requestedPage) && $requestedPage > 0 ? min($requestedPage, $eventPageCount) : 1;
+            if (isset($_GET['page']) && (!is_int($requestedPage) || $requestedPage !== $eventPage)) {
+                $location = $eventPage === 1 ? '/dashboard/events' : '/dashboard/events?page=' . $eventPage;
+                header('Location: ' . $location);
+                exit;
+            }
+            $events = $eventCount === 0 ? [] : $this->events->page($eventPage, $perPage);
+            $eventStatusCounts = $this->events->statusCounts();
+            $eventPageLinks = $this->eventPageLinks($eventPage, $eventPageCount);
+            $eventRangeStart = (($eventPage - 1) * $perPage) + 1;
+            $eventRangeEnd = min($eventCount, $eventPage * $perPage);
+        }
+
         $enquiries = in_array($section, ['overview', 'enquiries'], true) ? $this->enquiries() : [];
         $pageTitle = $pages[$section]['title'];
         $currentSection = $section;
@@ -71,6 +96,33 @@ class DashboardController
         $content = ob_get_clean();
 
         require __DIR__ . '/../Views/layouts/dashboard.php';
+    }
+
+    private function eventPageLinks(int $current, int $last): array
+    {
+        if ($last <= 7) {
+            return range(1, $last);
+        }
+
+        $pages = [1];
+        $start = max(2, $current - 1);
+        $end = min($last - 1, $current + 1);
+
+        if ($start > 2) {
+            $pages[] = null;
+        }
+
+        for ($page = $start; $page <= $end; $page++) {
+            $pages[] = $page;
+        }
+
+        if ($end < $last - 1) {
+            $pages[] = null;
+        }
+
+        $pages[] = $last;
+
+        return $pages;
     }
 
     private function enquiries(): array
