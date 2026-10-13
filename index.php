@@ -45,6 +45,11 @@ if ($requestPath === '/login') {
     } else {
         $eventController->delete($eventId);
     }
+} elseif (preg_match('#^/dashboard/documents/(proposals|invoices|proofs|acknowledgement)$#', $requestPath, $matches) === 1) {
+    $database = App\Config\Database::connection();
+    $events = new App\Models\Event($database);
+    $vendors = new App\Models\Vendor($database);
+    (new App\Controllers\DashboardController($auth, $events, $vendors))->show('documents', $matches[1]);
 } elseif (preg_match('#^/dashboard(?:/([a-z]+))?$#', $requestPath, $matches) === 1) {
     $database = App\Config\Database::connection();
     $events = new App\Models\Event($database);

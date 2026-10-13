@@ -13,7 +13,7 @@ class DashboardController
     {
     }
 
-    public function show(string $section): void
+    public function show(string $section, ?string $subsection = null): void
     {
         if (!$this->auth->check()) {
             header('Location: /login');
@@ -44,17 +44,44 @@ class DashboardController
             'documents' => [
                 'title' => 'Documents | Kordicraft Creations',
                 'view' => __DIR__ . '/../Views/dashboard/documents/index.php',
+                'children' => [
+                    'proposals' => [
+                        'title' => 'Proposals | Kordicraft Creations',
+                        'label' => 'Proposals',
+                        'view' => __DIR__ . '/../Views/dashboard/documents/proposals.php',
+                    ],
+                    'invoices' => [
+                        'title' => 'Invoices | Kordicraft Creations',
+                        'label' => 'Invoices',
+                        'view' => __DIR__ . '/../Views/dashboard/documents/invoices.php',
+                    ],
+                    'proofs' => [
+                        'title' => 'Proofs | Kordicraft Creations',
+                        'label' => 'Proofs',
+                        'view' => __DIR__ . '/../Views/dashboard/documents/proofs.php',
+                    ],
+                    'acknowledgement' => [
+                        'title' => 'Acknowledgement | Kordicraft Creations',
+                        'label' => 'Acknowledgement',
+                        'view' => __DIR__ . '/../Views/dashboard/documents/acknowledgement.php',
+                    ],
+                ],
             ],
             'contacts' => [
                 'title' => 'Contacts | Kordicraft Creations',
                 'view' => __DIR__ . '/../Views/dashboard/contacts/index.php',
             ],
+            'settings' => [
+                'title' => 'Settings | Kordicraft Creations',
+                'view' => __DIR__ . '/../Views/dashboard/settings/index.php',
+            ],
         ];
 
-        if (!isset($pages[$section])) {
+        if (!isset($pages[$section]) || ($subsection !== null && !isset($pages[$section]['children'][$subsection]))) {
             http_response_code(404);
             $pageTitle = 'Not found | Kordicraft Creations';
             $currentSection = '';
+            $currentDocument = '';
             $breadcrumbs = [
                 ['label' => 'Dashboard', 'href' => '/dashboard'],
                 ['label' => 'Not found'],
@@ -116,18 +143,32 @@ class DashboardController
             $vendorRangeEnd = min($vendorCount, $vendorPage * $perPage);
         }
         $enquiries = in_array($section, ['overview', 'enquiries'], true) ? $this->enquiries() : [];
-        $pageTitle = $pages[$section]['title'];
         $currentSection = $section;
-        $sectionLabel = trim(strtok($pageTitle, '|'));
-        $breadcrumbs = $section === 'overview'
-            ? [['label' => 'Dashboard']]
-            : [
+        $currentDocument = $subsection ?? '';
+
+        if ($subsection !== null) {
+            $page = $pages[$section]['children'][$subsection];
+            $pageTitle = $page['title'];
+            $breadcrumbs = [
                 ['label' => 'Dashboard', 'href' => '/dashboard'],
-                ['label' => $sectionLabel],
+                ['label' => 'Documents', 'href' => '/dashboard/documents'],
+                ['label' => $page['label']],
             ];
+            $view = $page['view'];
+        } else {
+            $pageTitle = $pages[$section]['title'];
+            $sectionLabel = trim(strtok($pageTitle, '|'));
+            $breadcrumbs = $section === 'overview'
+                ? [['label' => 'Dashboard']]
+                : [
+                    ['label' => 'Dashboard', 'href' => '/dashboard'],
+                    ['label' => $sectionLabel],
+                ];
+            $view = $pages[$section]['view'];
+        }
 
         ob_start();
-        require $pages[$section]['view'];
+        require $view;
         $content = ob_get_clean();
 
         require __DIR__ . '/../Views/layouts/dashboard.php';

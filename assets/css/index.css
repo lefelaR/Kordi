@@ -523,6 +523,8 @@ footer h2 {
 	--finance-invoiced-foreground: oklch(0.42 0.1 45);
 	--finance-payment-made: oklch(0.95 0.04 190);
 	--finance-payment-made-foreground: oklch(0.38 0.08 190);
+	--nav-subroute-active: oklch(0.95 0.04 350);
+	--nav-subroute-active-foreground: oklch(0.45 0.12 350);
 	--input: oklch(0.92 0.004 286.32);
 	--ring: oklch(0.705 0.015 286.067);
 	min-height: 100vh;
@@ -594,9 +596,39 @@ footer h2 {
 }
 
 .dashboard-sidebar nav.dashboard-side-nav a[aria-current="page"],
+.dashboard-sidebar nav.dashboard-side-nav a.dashboard-nav-parent-active,
 .dashboard-sidebar nav.dashboard-side-nav a:hover {
 	background: var(--sidebar-accent);
 	color: var(--sidebar-accent-foreground);
+	opacity: 1;
+}
+
+.dashboard-sidebar nav.dashboard-side-nav .dashboard-nav-group {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.dashboard-sidebar nav.dashboard-side-nav .dashboard-nav-children {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	margin: 0 0 4px 20px;
+	padding-left: 12px;
+	border-left: 1px solid var(--sidebar-border);
+}
+
+.dashboard-sidebar nav.dashboard-side-nav .dashboard-nav-children a {
+	padding: 6px 12px;
+	font-size: 13px;
+	font-weight: 400;
+}
+
+.dashboard-sidebar nav.dashboard-side-nav .dashboard-nav-children a[aria-current="page"],
+.dashboard-sidebar nav.dashboard-side-nav .dashboard-nav-children a[aria-current="page"]:hover {
+	background: var(--nav-subroute-active);
+	color: var(--nav-subroute-active-foreground);
+	font-weight: 500;
 	opacity: 1;
 }
 

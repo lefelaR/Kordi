@@ -20,7 +20,7 @@ class Vendor
         $perPage = max(1, $perPage);
         $offset = (max(1, $page) - 1) * $perPage;
         $statement = $this->database->query(
-            'SELECT id, name, email, phone, created_at FROM vendors ORDER BY created_at DESC, id DESC LIMIT '
+            'SELECT id, name, contact, email, phone, created_at FROM vendors ORDER BY created_at DESC, id DESC LIMIT '
             . $perPage
             . ' OFFSET '
             . $offset
@@ -32,7 +32,7 @@ class Vendor
     public function find(int $id): ?array
     {
         $statement = $this->database->prepare(
-            'SELECT id, name, email, phone FROM vendors WHERE id = :id'
+            'SELECT id, name, contact, email, phone FROM vendors WHERE id = :id'
         );
         $statement->execute(['id' => $id]);
         $vendor = $statement->fetch();
@@ -40,26 +40,28 @@ class Vendor
         return $vendor === false ? null : $vendor;
     }
 
-    public function create(string $name, ?string $email, ?string $phone): void
+    public function create(string $name, ?string $contact, ?string $email, ?string $phone): void
     {
         $statement = $this->database->prepare(
-            'INSERT INTO vendors (name, email, phone) VALUES (:name, :email, :phone)'
+            'INSERT INTO vendors (name, contact, email, phone) VALUES (:name, :contact, :email, :phone)'
         );
         $statement->execute([
             'name' => $name,
+            'contact' => $contact,
             'email' => $email,
             'phone' => $phone,
         ]);
     }
 
-    public function update(int $id, string $name, ?string $email, ?string $phone): void
+    public function update(int $id, string $name, ?string $contact, ?string $email, ?string $phone): void
     {
         $statement = $this->database->prepare(
-            'UPDATE vendors SET name = :name, email = :email, phone = :phone WHERE id = :id'
+            'UPDATE vendors SET name = :name, contact = :contact, email = :email, phone = :phone WHERE id = :id'
         );
         $statement->execute([
             'id' => $id,
             'name' => $name,
+            'contact' => $contact,
             'email' => $email,
             'phone' => $phone,
         ]);

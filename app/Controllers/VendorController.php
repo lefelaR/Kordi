@@ -20,6 +20,7 @@ class VendorController
 
         $error = '';
         $name = '';
+        $contact = '';
         $email = '';
         $phone = '';
 
@@ -27,11 +28,12 @@ class VendorController
             $input = $this->readVendorInput();
             $error = $input['error'];
             $name = $input['name'];
+            $contact = $input['contact'];
             $email = $input['email'];
             $phone = $input['phone'];
 
             if ($error === '') {
-                $this->vendors->create($name, $input['storedEmail'], $input['storedPhone']);
+                $this->vendors->create($name, $input['storedContact'], $input['storedEmail'], $input['storedPhone']);
                 header('Location: ' . $this->vendorsLocation());
                 exit;
             }
@@ -71,6 +73,7 @@ class VendorController
 
         $error = '';
         $name = (string) $vendor['name'];
+        $contact = (string) ($vendor['contact'] ?? '');
         $email = (string) ($vendor['email'] ?? '');
         $phone = (string) ($vendor['phone'] ?? '');
 
@@ -78,11 +81,12 @@ class VendorController
             $input = $this->readVendorInput();
             $error = $input['error'];
             $name = $input['name'];
+            $contact = $input['contact'];
             $email = $input['email'];
             $phone = $input['phone'];
 
             if ($error === '') {
-                $this->vendors->update($id, $name, $input['storedEmail'], $input['storedPhone']);
+                $this->vendors->update($id, $name, $input['storedContact'], $input['storedEmail'], $input['storedPhone']);
                 header('Location: ' . $this->vendorsLocation());
                 exit;
             }
@@ -163,12 +167,15 @@ class VendorController
     private function readVendorInput(): array
     {
         $name = trim($_POST['name'] ?? '');
+        $contact = trim($_POST['contact'] ?? '');
         $email = trim($_POST['email'] ?? '');
         $phone = trim($_POST['phone'] ?? '');
         $error = '';
 
         if ($name === '' || strlen($name) > 180) {
-            $error = 'Enter a vendor name of 180 characters or fewer.';
+            $error = 'Enter a business name of 180 characters or fewer.';
+        } elseif (strlen($contact) > 180) {
+            $error = 'Enter a contact name of 180 characters or fewer.';
         } elseif ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $error = 'Enter a valid email address.';
         } elseif (strlen($phone) > 40) {
@@ -178,8 +185,10 @@ class VendorController
         return [
             'error' => $error,
             'name' => $name,
+            'contact' => $contact,
             'email' => $email,
             'phone' => $phone,
+            'storedContact' => $contact === '' ? null : $contact,
             'storedEmail' => $email === '' ? null : $email,
             'storedPhone' => $phone === '' ? null : $phone,
         ];

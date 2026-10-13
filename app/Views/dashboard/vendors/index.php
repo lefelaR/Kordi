@@ -11,6 +11,7 @@
             <thead>
                 <tr>
                     <th>Name</th>
+                    <th>Contact</th>
                     <th>Email</th>
                     <th>Phone</th>
                     <th>Action</th>
@@ -19,12 +20,13 @@
             <tbody>
                 <?php if ($vendors === []): ?>
                     <tr>
-                        <td class="dashboard-empty" colspan="4">No vendors yet.</td>
+                        <td class="dashboard-empty" colspan="5">No vendors yet.</td>
                     </tr>
                 <?php else: ?>
                     <?php foreach ($vendors as $vendor): ?>
                         <tr>
                             <td><?= htmlspecialchars($vendor['name'], ENT_QUOTES, 'UTF-8') ?></td>
+                            <td><?= htmlspecialchars((string) ($vendor['contact'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
                             <td><?= htmlspecialchars((string) ($vendor['email'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
                             <td><?= htmlspecialchars((string) ($vendor['phone'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
                             <td>

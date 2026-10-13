@@ -13,6 +13,10 @@
             <input type="text" name="name" maxlength="180" required value="<?= htmlspecialchars($name, ENT_QUOTES, 'UTF-8') ?>">
         </label>
         <label>
+            Contact
+            <input type="text" name="contact" maxlength="180" value="<?= htmlspecialchars($contact, ENT_QUOTES, 'UTF-8') ?>">
+        </label>
+        <label>
             Email
             <input type="email" name="email" maxlength="255" value="<?= htmlspecialchars($email, ENT_QUOTES, 'UTF-8') ?>">
         </label>
