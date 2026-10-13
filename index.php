@@ -36,6 +36,15 @@ if ($requestPath === '/login') {
 } elseif ($requestPath === '/companies/add') {
     $companies = new App\Models\Company(App\Config\Database::connection());
     (new App\Controllers\CompanyController($auth, $companies))->add();
+} elseif (preg_match('#^/companies/(\d+)/(edit|delete)$#', $requestPath, $matches) === 1) {
+    $companies = new App\Models\Company(App\Config\Database::connection());
+    $companyController = new App\Controllers\CompanyController($auth, $companies);
+    $companyId = (int) $matches[1];
+    if ($matches[2] === 'edit') {
+        $companyController->edit($companyId);
+    } else {
+        $companyController->delete($companyId);
+    }
 } elseif ($requestPath === '/events/add') {
     $events = new App\Models\Event(App\Config\Database::connection());
     (new App\Controllers\EventController($auth, $events))->add();

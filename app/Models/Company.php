@@ -15,6 +15,15 @@ class Company
         return (int) $this->database->query('SELECT COUNT(*) FROM companies')->fetchColumn();
     }
 
+    public function all(): array
+    {
+        $statement = $this->database->query(
+            'SELECT id, name, contact, email, phone, created_at FROM companies ORDER BY name ASC, id ASC'
+        );
+
+        return $statement->fetchAll();
+    }
+
     public function page(int $page, int $perPage): array
     {
         $perPage = max(1, $perPage);

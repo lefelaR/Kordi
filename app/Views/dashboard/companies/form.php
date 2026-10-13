@@ -25,8 +25,23 @@
             <input type="text" name="phone" maxlength="40" value="<?= htmlspecialchars($phone, ENT_QUOTES, 'UTF-8') ?>">
         </label>
         <div class="dashboard-form-actions">
-            <button class="dashboard-button" type="submit">Save</button>
-            <a class="dashboard-button dashboard-button-secondary" href="<?= ($companyPage ?? 1) > 1 ? '/dashboard/companies?page=' . (int) $companyPage : '/dashboard/companies' ?>">Cancel</a>
+            <button class="dashboard-button<?= !empty($actionIcons) ? ' dashboard-button-with-icon' : '' ?>" type="submit">
+                <?php if (!empty($actionIcons)): ?>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M20 6 9 17l-5-5" />
+                    </svg>
+                <?php endif; ?>
+                Save
+            </button>
+            <a class="dashboard-button dashboard-button-secondary<?= !empty($actionIcons) ? ' dashboard-button-with-icon' : '' ?>" href="<?= ($companyPage ?? 1) > 1 ? '/dashboard/companies?page=' . (int) $companyPage : '/dashboard/companies' ?>">
+                <?php if (!empty($actionIcons)): ?>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M18 6 6 18" />
+                        <path d="m6 6 12 12" />
+                    </svg>
+                <?php endif; ?>
+                Cancel
+            </a>
         </div>
     </form>
 </section>

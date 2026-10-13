@@ -911,11 +911,50 @@ nav.dashboard-breadcrumb .dashboard-breadcrumb-separator svg {
 	font-size: 14px;
 }
 
-.dashboard-section-grid {
+.dashboard-metric-grid {
 	display: grid;
 	grid-template-columns: repeat(3, minmax(0, 1fr));
 	gap: 16px;
 	margin-top: 24px;
+}
+
+.dashboard-metric-card {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 20px;
+	background: var(--card);
+	color: var(--card-foreground);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+}
+
+.dashboard-metric-card h2 {
+	margin: 0;
+	color: var(--muted-foreground);
+	font-size: 14px;
+	font-weight: 500;
+}
+
+.dashboard-metric-value {
+	margin: 0;
+	font-size: 28px;
+	font-weight: 600;
+	letter-spacing: -0.02em;
+	line-height: 1.2;
+}
+
+.dashboard-metric-meta {
+	margin: 0;
+	color: var(--muted-foreground);
+	font-size: 13px;
+}
+
+.dashboard-section-grid {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 16px;
+	margin-top: 16px;
 }
 
 .dashboard-section-card {
@@ -1205,6 +1244,13 @@ nav.dashboard-pagination span {
 	font-weight: 500;
 }
 
+.dashboard-invoice-empty {
+	margin: 0;
+	padding: 6px 8px 8px 24px;
+	color: var(--muted-foreground);
+	font-size: 13px;
+}
+
 .dashboard-invoice-list {
 	list-style: none;
 	margin: 0;
@@ -1212,6 +1258,12 @@ nav.dashboard-pagination span {
 	display: flex;
 	flex-direction: column;
 	gap: 1px;
+}
+
+.dashboard-invoice-preview-empty {
+	margin: auto;
+	padding: 24px;
+	text-align: center;
 }
 
 .dashboard-invoice-item {
@@ -1368,6 +1420,7 @@ nav.dashboard-pagination span {
 		padding: 16px;
 	}
 
+	.dashboard-metric-grid,
 	.dashboard-section-grid,
 	.dashboard-split,
 	.dashboard-invoice-layout {

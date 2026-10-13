@@ -32,11 +32,39 @@ $sections = [
     ],
 ];
 ?>
+<?php
+$metrics = [
+    [
+        'label' => 'Revenue',
+        'value' => 'R 0.00',
+        'meta' => 'No revenue recorded yet.',
+    ],
+    [
+        'label' => 'Expenses',
+        'value' => 'R 0.00',
+        'meta' => 'No expenses recorded yet.',
+    ],
+    [
+        'label' => 'Profits',
+        'value' => 'R 0.00',
+        'meta' => 'No profits recorded yet.',
+    ],
+];
+?>
 <section class="dashboard-page">
     <header class="dashboard-page-header">
         <h1>Dashboard</h1>
         <p>Events, vendors, enquiries, venues, documents, and contacts.</p>
     </header>
+    <div class="dashboard-metric-grid">
+        <?php foreach ($metrics as $metric): ?>
+            <article class="dashboard-metric-card">
+                <h2><?= htmlspecialchars($metric['label'], ENT_QUOTES, 'UTF-8') ?></h2>
+                <p class="dashboard-metric-value"><?= htmlspecialchars($metric['value'], ENT_QUOTES, 'UTF-8') ?></p>
+                <p class="dashboard-metric-meta"><?= htmlspecialchars($metric['meta'], ENT_QUOTES, 'UTF-8') ?></p>
+            </article>
+        <?php endforeach; ?>
+    </div>
     <div class="dashboard-section-grid">
         <?php foreach ($sections as $section): ?>
             <a class="dashboard-section-card" href="<?= htmlspecialchars($section['href'], ENT_QUOTES, 'UTF-8') ?>">

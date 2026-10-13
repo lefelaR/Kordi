@@ -173,6 +173,19 @@ class DashboardController
         }
 
         $enquiries = in_array($section, ['overview', 'enquiries'], true) ? $this->enquiries() : [];
+        $invoiceCompanies = [];
+        $selectedInvoice = null;
+
+        if ($section === 'documents' && $subsection === 'invoices') {
+            foreach ($this->companies->all() as $company) {
+                $invoiceCompanies[] = [
+                    'id' => (int) $company['id'],
+                    'name' => (string) $company['name'],
+                    'invoices' => [],
+                ];
+            }
+        }
+
         $currentSection = $section;
         $currentDocument = $subsection ?? '';
 

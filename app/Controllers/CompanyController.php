@@ -58,6 +58,92 @@ class CompanyController
         require __DIR__ . '/../Views/layouts/dashboard.php';
     }
 
+    public function edit(int $id): void
+    {
+        if (!$this->auth->check()) {
+            header('Location: /login');
+            exit;
+        }
+
+        $company = $this->companies->find($id);
+        if ($company === null) {
+            $this->notFound();
+            return;
+        }
+
+        $error = '';
+        $name = (string) $company['name'];
+        $contact = (string) ($company['contact'] ?? '');
+        $email = (string) ($company['email'] ?? '');
+        $phone = (string) ($company['phone'] ?? '');
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $input = $this->readCompanyInput();
+            $error = $input['error'];
+            $name = $input['name'];
+            $contact = $input['contact'];
+            $email = $input['email'];
+            $phone = $input['phone'];
+
+            if ($error === '') {
+                $this->companies->update($id, $name, $input['storedContact'], $input['storedEmail'], $input['storedPhone']);
+                header('Location: ' . $this->companiesLocation());
+                exit;
+            }
+        }
+
+        $pageTitle = 'Edit company | Kordicraft Creations';
+        $currentSection = 'companies';
+        $breadcrumbs = [
+            ['label' => 'Dashboard', 'href' => '/dashboard'],
+            ['label' => 'Companies', 'href' => '/dashboard/companies'],
+            ['label' => 'Edit company'],
+        ];
+        $companyPage = $this->requestedPage();
+        $formAction = '/companies/' . $id . '/edit';
+        $heading = 'Edit company';
+        $summary = 'Update this company.';
+        $actionIcons = true;
+
+        ob_start();
+        require __DIR__ . '/../Views/dashboard/companies/form.php';
+        $content = ob_get_clean();
+
+        require __DIR__ . '/../Views/layouts/dashboard.php';
+    }
+
+    public function delete(int $id): void
+    {
+        if (!$this->auth->check()) {
+            header('Location: /login');
+            exit;
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->companies->delete($id);
+        }
+
+        header('Location: ' . $this->companiesLocation());
+        exit;
+    }
+
+    private function notFound(): void
+    {
+        http_response_code(404);
+        $pageTitle = 'Not found | Kordicraft Creations';
+        $currentSection = 'companies';
+        $breadcrumbs = [
+            ['label' => 'Dashboard', 'href' => '/dashboard'],
+            ['label' => 'Not found'],
+        ];
+
+        ob_start();
+        require __DIR__ . '/../Views/dashboard/not-found.php';
+        $content = ob_get_clean();
+
+        require __DIR__ . '/../Views/layouts/dashboard.php';
+    }
+
     private function requestedPage(): int
     {
         $page = filter_input(INPUT_GET, 'page', FILTER_VALIDATE_INT);
