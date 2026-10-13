@@ -13,6 +13,7 @@
     <div class="dashboard-shell">
         <?php require __DIR__ . '/../includes/dashboard-side-nav.php'; ?>
         <main class="dashboard-content">
+            <?php require __DIR__ . '/../includes/dashboard-breadcrumbs.php'; ?>
             <?= $content ?>
         </main>
     </div>

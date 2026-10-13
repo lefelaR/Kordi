@@ -13,5 +13,7 @@ CREATE TABLE IF NOT EXISTS events (
     title VARCHAR(180) NOT NULL,
     event_date DATE NULL,
     status VARCHAR(40) NOT NULL DEFAULT 'planned',
+    finance VARCHAR(40) NOT NULL DEFAULT 'quotes',
+    attendants INT UNSIGNED NOT NULL DEFAULT 0,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
