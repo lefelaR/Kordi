@@ -515,6 +515,53 @@ nav.dashboard-side-nav a {
 	text-align: left;
 }
 
+.dashboard-main {
+	background: #fafafa;
+	min-height: calc(100vh - 135px);
+}
+
+.dashboard-overview {
+	padding: 32px 40px 64px;
+}
+
+.dashboard-page-header h1 {
+	font-family: 'Cormorant Garamond', serif;
+	font-size: 42px;
+	font-weight: 400;
+}
+
+.dashboard-page-header p {
+	margin-top: 8px;
+	color: #666;
+	line-height: 1.6;
+}
+
+.dashboard-card-grid {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 16px;
+	margin-top: 28px;
+}
+
+.dashboard-card {
+	padding: 24px;
+	background: #fff;
+	border: 1px solid #eee;
+	border-radius: 12px;
+}
+
+.dashboard-card h2 {
+	font-family: 'Cormorant Garamond', serif;
+	font-size: 28px;
+	font-weight: 400;
+}
+
+.dashboard-card p {
+	margin-top: 8px;
+	color: #666;
+	line-height: 1.6;
+}
+
 @media(max-width:800px) {
 	.services,
 	.gallery-grid,
@@ -601,6 +648,14 @@ nav.dashboard-side-nav a {
 	}
 
 	.dashboard-shell {
+		grid-template-columns: 1fr;
+	}
+
+	.dashboard-overview {
+		padding: 28px 20px 48px;
+	}
+
+	.dashboard-card-grid {
 		grid-template-columns: 1fr;
 	}
 
