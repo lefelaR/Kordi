@@ -14,20 +14,9 @@ Use the layouts at https://www.shadcnblocks.com/blocks/dashboard as the referenc
 
 ## Shell
 
-Keep the existing dashboard layout:
+The dashboard template is `app/Views/layouts/dashboard.php`. Its only chrome is the top navigation from `app/Views/includes/dashboard-nav.php`. Do not add a sidebar. Page content is rendered into the template's main area.
 
-- Top bar from `app/Views/includes/dashboard-nav.php`
-- Left sidebar from `app/Views/includes/dashboard-side-nav.php`, with Events, Vendors, Enquiries, Venues, Documents, and Contacts
-- Main column in `app/Views/layouts/dashboard.php`
-
-Match the reference shells: a persistent sidebar, a main column on a muted background (`#fafafa`), and white cards with a 1px `#eee` border, a small radius, and even padding. The active sidebar item uses a neutral fill, not a new accent color.
-
-## Page structure
-
-1. Page header, left aligned: a Cormorant Garamond title and one Montserrat description. Put actions on the right of that row when a screen has them.
-2. A first row of summary or action cards.
-3. The working area under that: a table, list, or a wide card beside a narrower activity card.
-4. On a narrow screen, stack the sidebar above the main column and collapse card grids to one column.
+Cards and the canvas use the shadcn default theme tokens.
 
 ## Which block to open
 
@@ -42,6 +31,6 @@ The catalog groups are Orders, Revenue, Customers, Projects, and Payments. Use O
 
 ## Keep the site
 
-Use the public site's type and color: Montserrat for interface text, Cormorant Garamond for titles, `#111` text, white cards, `#fafafa` canvas, `#eee` borders. Do not restyle the public marketing pages to look like an admin product.
+Take color, type, radius, and buttons from the shadcn-default-theme skill. Do not restyle the public marketing pages to look like an admin product.
 
 Show an empty state when a list has no records. Do not invent counts, charts, or sample people to fill a reference layout.
