@@ -55,17 +55,21 @@ $currentDocument = $currentDocument ?? '';
     <nav class="dashboard-side-nav" aria-label="Dashboard">
         <?php foreach ($dashboardLinks as $section => $link): ?>
             <?php if (!empty($link['children'])): ?>
-                <div class="dashboard-nav-group">
-                    <a href="<?= htmlspecialchars($link['href'], ENT_QUOTES, 'UTF-8') ?>"<?= $currentSection === $section && $currentDocument === '' ? ' aria-current="page"' : '' ?><?= $currentSection === $section ? ' class="dashboard-nav-parent-active"' : '' ?>>
+                <?php $groupOpen = $currentSection === $section; ?>
+                <details class="dashboard-nav-group"<?= $groupOpen ? ' open' : '' ?>>
+                    <summary class="dashboard-nav-trigger<?= $groupOpen ? ' dashboard-nav-parent-active' : '' ?>">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><?= $link['icon'] ?></svg>
-                        <?= htmlspecialchars($link['label'], ENT_QUOTES, 'UTF-8') ?>
-                    </a>
+                        <span class="dashboard-nav-trigger-label"><?= htmlspecialchars($link['label'], ENT_QUOTES, 'UTF-8') ?></span>
+                        <svg class="dashboard-nav-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="m9 18 6-6-6-6" />
+                        </svg>
+                    </summary>
                     <div class="dashboard-nav-children">
                         <?php foreach ($link['children'] as $childKey => $child): ?>
                             <a href="<?= htmlspecialchars($child['href'], ENT_QUOTES, 'UTF-8') ?>"<?= $currentSection === $section && $currentDocument === $childKey ? ' aria-current="page"' : '' ?>><?= htmlspecialchars($child['label'], ENT_QUOTES, 'UTF-8') ?></a>
                         <?php endforeach; ?>
                     </div>
-                </div>
+                </details>
             <?php else: ?>
                 <a href="<?= htmlspecialchars($link['href'], ENT_QUOTES, 'UTF-8') ?>"<?= $currentSection === $section ? ' aria-current="page"' : '' ?>>
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><?= $link['icon'] ?></svg>

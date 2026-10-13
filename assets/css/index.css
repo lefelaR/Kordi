@@ -576,28 +576,34 @@ footer h2 {
 	letter-spacing: 0;
 }
 
-.dashboard-sidebar nav.dashboard-side-nav a {
+.dashboard-sidebar nav.dashboard-side-nav a,
+.dashboard-sidebar nav.dashboard-side-nav .dashboard-nav-trigger {
 	display: flex;
 	align-items: center;
 	gap: 8px;
 	padding: 8px 12px;
 	border-radius: var(--radius);
 	color: var(--sidebar-foreground);
+	font: inherit;
+	font-size: 14px;
 	font-weight: 500;
 	letter-spacing: 0;
 	text-align: left;
 	text-decoration: none;
+	cursor: pointer;
 }
 
-.dashboard-sidebar nav.dashboard-side-nav a svg {
+.dashboard-sidebar nav.dashboard-side-nav a svg,
+.dashboard-sidebar nav.dashboard-side-nav .dashboard-nav-trigger svg {
 	width: 16px;
 	height: 16px;
 	flex: none;
 }
 
 .dashboard-sidebar nav.dashboard-side-nav a[aria-current="page"],
-.dashboard-sidebar nav.dashboard-side-nav a.dashboard-nav-parent-active,
-.dashboard-sidebar nav.dashboard-side-nav a:hover {
+.dashboard-sidebar nav.dashboard-side-nav .dashboard-nav-trigger.dashboard-nav-parent-active,
+.dashboard-sidebar nav.dashboard-side-nav a:hover,
+.dashboard-sidebar nav.dashboard-side-nav .dashboard-nav-trigger:hover {
 	background: var(--sidebar-accent);
 	color: var(--sidebar-accent-foreground);
 	opacity: 1;
@@ -607,6 +613,31 @@ footer h2 {
 	display: flex;
 	flex-direction: column;
 	gap: 2px;
+}
+
+.dashboard-sidebar nav.dashboard-side-nav .dashboard-nav-trigger {
+	list-style: none;
+	border: 0;
+	background: transparent;
+	width: 100%;
+}
+
+.dashboard-sidebar nav.dashboard-side-nav .dashboard-nav-trigger::-webkit-details-marker {
+	display: none;
+}
+
+.dashboard-sidebar nav.dashboard-side-nav .dashboard-nav-trigger-label {
+	flex: 1;
+	min-width: 0;
+}
+
+.dashboard-sidebar nav.dashboard-side-nav .dashboard-nav-chevron {
+	margin-left: auto;
+	transition: transform 0.15s ease;
+}
+
+.dashboard-sidebar nav.dashboard-side-nav .dashboard-nav-group[open] > .dashboard-nav-trigger .dashboard-nav-chevron {
+	transform: rotate(90deg);
 }
 
 .dashboard-sidebar nav.dashboard-side-nav .dashboard-nav-children {
@@ -1069,6 +1100,164 @@ nav.dashboard-pagination span {
 	font-weight: 600;
 }
 
+.dashboard-invoice-card h2 {
+	margin: 0;
+	padding: 4px 8px 0;
+	font-size: 15px;
+	font-weight: 600;
+	line-height: 1.25;
+}
+
+.dashboard-invoice-layout {
+	display: grid;
+	grid-template-columns: minmax(16rem, 22rem) minmax(0, 1fr);
+	gap: 8px;
+	margin-top: 16px;
+	align-items: stretch;
+	min-height: 70vh;
+}
+
+.dashboard-invoice-layout .dashboard-panel {
+	margin-top: 0;
+}
+
+.dashboard-invoice-card {
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+	overflow: hidden;
+}
+
+.dashboard-invoice-card-body {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	min-height: 0;
+	padding: 4px;
+}
+
+.dashboard-invoice-accordion {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	overflow: auto;
+}
+
+.dashboard-invoice-company {
+	border-radius: calc(var(--radius) - 2px);
+}
+
+.dashboard-invoice-company-summary {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	padding: 8px;
+	border-radius: calc(var(--radius) - 2px);
+	color: var(--foreground);
+	font-size: 14px;
+	font-weight: 500;
+	cursor: pointer;
+	list-style: none;
+}
+
+.dashboard-invoice-company-summary::-webkit-details-marker {
+	display: none;
+}
+
+.dashboard-invoice-company-summary::before {
+	content: "";
+	width: 0.4rem;
+	height: 0.4rem;
+	margin-right: 2px;
+	border-right: 1.5px solid var(--muted-foreground);
+	border-bottom: 1.5px solid var(--muted-foreground);
+	transform: rotate(-45deg);
+	transition: transform 0.15s ease;
+	flex-shrink: 0;
+}
+
+.dashboard-invoice-company[open] > .dashboard-invoice-company-summary::before {
+	transform: rotate(45deg);
+}
+
+.dashboard-invoice-company-summary:hover {
+	background: var(--accent);
+	color: var(--accent-foreground);
+}
+
+.dashboard-invoice-company-summary > span:first-of-type {
+	flex: 1;
+	min-width: 0;
+}
+
+.dashboard-invoice-company-count {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 1.25rem;
+	height: 1.25rem;
+	padding: 0 6px;
+	border-radius: 999px;
+	background: var(--muted);
+	color: var(--muted-foreground);
+	font-size: 11px;
+	font-weight: 500;
+}
+
+.dashboard-invoice-list {
+	list-style: none;
+	margin: 0;
+	padding: 0 0 2px;
+	display: flex;
+	flex-direction: column;
+	gap: 1px;
+}
+
+.dashboard-invoice-item {
+	display: block;
+	width: 100%;
+	padding: 6px 8px 6px 24px;
+	border: 0;
+	border-radius: calc(var(--radius) - 2px);
+	background: transparent;
+	color: var(--muted-foreground);
+	font: inherit;
+	font-size: 13px;
+	font-weight: 400;
+	text-align: left;
+	cursor: pointer;
+}
+
+.dashboard-invoice-item:hover {
+	background: var(--accent);
+	color: var(--accent-foreground);
+}
+
+.dashboard-invoice-item.is-active {
+	background: var(--sidebar-accent);
+	color: var(--sidebar-accent-foreground);
+	font-weight: 500;
+}
+
+.dashboard-invoice-preview {
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	padding: 0;
+	min-height: 70vh;
+}
+
+.dashboard-invoice-preview iframe {
+	display: block;
+	flex: 1;
+	width: 100%;
+	height: 100%;
+	min-height: 70vh;
+	border: 0;
+	background: var(--background);
+}
+
 
 @media(max-width:800px) {
 	.services,
@@ -1180,8 +1369,15 @@ nav.dashboard-pagination span {
 	}
 
 	.dashboard-section-grid,
-	.dashboard-split {
+	.dashboard-split,
+	.dashboard-invoice-layout {
 		grid-template-columns: 1fr;
+	}
+
+	.dashboard-invoice-layout,
+	.dashboard-invoice-preview,
+	.dashboard-invoice-preview iframe {
+		min-height: 50vh;
 	}
 
 	.dashboard-page-bar {
