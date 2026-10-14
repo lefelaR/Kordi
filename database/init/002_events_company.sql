@@ -1,0 +1,2 @@
+ALTER TABLE events
+    ADD COLUMN company VARCHAR(180) NULL AFTER title;

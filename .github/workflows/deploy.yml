@@ -1,0 +1,102 @@
+# Deploys production when a pull request targeting main is merged.
+# Require PR approvals in branch protection so merges (and deploys) only
+# happen after review approval.
+#
+# Repository secrets required:
+#   DEPLOY_HOST      – server hostname or IP
+#   DEPLOY_USER      – SSH user
+#   DEPLOY_SSH_KEY   – private key for that user
+#   DEPLOY_PATH      – absolute path on the server (e.g. /var/www/kordi)
+#
+# Optional secrets:
+#   DEPLOY_PORT      – SSH port (default 22)
+#
+# Also create a GitHub Environment named "production" (Settings → Environments)
+# if you want an extra manual approval gate before the deploy job runs.
+
+name: Deploy production
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - closed
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy to production
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          tools: composer
+          coverage: none
+
+      - name: Install production dependencies
+        run: composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
+
+      - name: Deploy with rsync over SSH
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+        run: |
+          set -euo pipefail
+
+          for required in DEPLOY_HOST DEPLOY_USER DEPLOY_SSH_KEY DEPLOY_PATH; do
+            if [ -z "${!required}" ]; then
+              echo "::error::Missing required secret: ${required}"
+              exit 1
+            fi
+          done
+
+          PORT="${DEPLOY_PORT:-22}"
+          KEY_FILE="$(mktemp)"
+          printf '%s\n' "$DEPLOY_SSH_KEY" > "$KEY_FILE"
+          chmod 600 "$KEY_FILE"
+
+          cleanup() {
+            rm -f "$KEY_FILE"
+          }
+          trap cleanup EXIT
+
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          ssh-keyscan -p "$PORT" -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+
+          rsync -az --delete \
+            -e "ssh -i ${KEY_FILE} -p ${PORT} -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes" \
+            --exclude '.git/' \
+            --exclude '.github/' \
+            --exclude '.cursor/' \
+            --exclude '.env' \
+            --exclude '.env.*' \
+            --exclude 'compose.yaml' \
+            --exclude 'Dockerfile' \
+            --exclude 'docker-entrypoint.sh' \
+            --exclude 'scripts/' \
+            --exclude 'database/init/' \
+            ./ \
+            "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}/"
+
+      - name: Summary
+        run: |
+          echo "Deployed merge to main (${{ github.sha }}) to production."
