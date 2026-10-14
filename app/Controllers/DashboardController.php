@@ -4,15 +4,23 @@ namespace App\Controllers;
 
 use App\Config\Database;
 use App\Models\Auth;
+use App\Models\Company;
 use App\Models\Event;
+use App\Models\Vendor;
+use App\Models\Venue;
 
 class DashboardController
 {
-    public function __construct(private Auth $auth, private Event $events)
-    {
+    public function __construct(
+        private Auth $auth,
+        private Event $events,
+        private Vendor $vendors,
+        private Company $companies,
+        private Venue $venues,
+    ) {
     }
 
-    public function show(string $section): void
+    public function show(string $section, ?string $subsection = null): void
     {
         if (!$this->auth->check()) {
             header('Location: /login');
@@ -40,20 +48,51 @@ class DashboardController
                 'title' => 'Venues | Kordicraft Creations',
                 'view' => __DIR__ . '/../Views/dashboard/venues/index.php',
             ],
+            'companies' => [
+                'title' => 'Companies | Kordicraft Creations',
+                'view' => __DIR__ . '/../Views/dashboard/companies/index.php',
+            ],
             'documents' => [
                 'title' => 'Documents | Kordicraft Creations',
                 'view' => __DIR__ . '/../Views/dashboard/documents/index.php',
+                'children' => [
+                    'proposals' => [
+                        'title' => 'Proposals | Kordicraft Creations',
+                        'label' => 'Proposals',
+                        'view' => __DIR__ . '/../Views/dashboard/documents/proposals.php',
+                    ],
+                    'invoices' => [
+                        'title' => 'Invoices | Kordicraft Creations',
+                        'label' => 'Invoices',
+                        'view' => __DIR__ . '/../Views/dashboard/documents/invoices.php',
+                    ],
+                    'proofs' => [
+                        'title' => 'Proofs | Kordicraft Creations',
+                        'label' => 'Proofs',
+                        'view' => __DIR__ . '/../Views/dashboard/documents/proofs.php',
+                    ],
+                    'acknowledgement' => [
+                        'title' => 'Acknowledgement | Kordicraft Creations',
+                        'label' => 'Acknowledgement',
+                        'view' => __DIR__ . '/../Views/dashboard/documents/acknowledgement.php',
+                    ],
+                ],
             ],
             'contacts' => [
                 'title' => 'Contacts | Kordicraft Creations',
                 'view' => __DIR__ . '/../Views/dashboard/contacts/index.php',
             ],
+            'settings' => [
+                'title' => 'Settings | Kordicraft Creations',
+                'view' => __DIR__ . '/../Views/dashboard/settings/index.php',
+            ],
         ];
 
-        if (!isset($pages[$section])) {
+        if (!isset($pages[$section]) || ($subsection !== null && !isset($pages[$section]['children'][$subsection]))) {
             http_response_code(404);
             $pageTitle = 'Not found | Kordicraft Creations';
             $currentSection = '';
+            $currentDocument = '';
             $breadcrumbs = [
                 ['label' => 'Dashboard', 'href' => '/dashboard'],
                 ['label' => 'Not found'],
@@ -86,30 +125,135 @@ class DashboardController
             }
             $events = $eventCount === 0 ? [] : $this->events->page($eventPage, $perPage);
             $eventStatusCounts = $this->events->statusCounts();
-            $eventPageLinks = $this->eventPageLinks($eventPage, $eventPageCount);
+            $eventPageLinks = $this->pageLinks($eventPage, $eventPageCount);
             $eventRangeStart = (($eventPage - 1) * $perPage) + 1;
             $eventRangeEnd = min($eventCount, $eventPage * $perPage);
         }
 
+        $vendorCount = in_array($section, ['overview', 'vendors'], true) ? $this->vendors->count() : 0;
+        $vendors = [];
+        $vendorPage = 1;
+        $vendorPageCount = 1;
+        $vendorPageLinks = [1];
+        $vendorRangeStart = 0;
+        $vendorRangeEnd = 0;
+
+        if ($section === 'vendors') {
+            $perPage = 10;
+            $vendorPageCount = max(1, (int) ceil($vendorCount / $perPage));
+            $requestedPage = filter_input(INPUT_GET, 'page', FILTER_VALIDATE_INT);
+            $vendorPage = is_int($requestedPage) && $requestedPage > 0 ? min($requestedPage, $vendorPageCount) : 1;
+            if (isset($_GET['page']) && (!is_int($requestedPage) || $requestedPage !== $vendorPage)) {
+                $location = $vendorPage === 1 ? '/dashboard/vendors' : '/dashboard/vendors?page=' . $vendorPage;
+                header('Location: ' . $location);
+                exit;
+            }
+            $vendors = $vendorCount === 0 ? [] : $this->vendors->page($vendorPage, $perPage);
+            $vendorPageLinks = $this->pageLinks($vendorPage, $vendorPageCount);
+            $vendorRangeStart = (($vendorPage - 1) * $perPage) + 1;
+            $vendorRangeEnd = min($vendorCount, $vendorPage * $perPage);
+        }
+
+        $companyCount = $section === 'companies' ? $this->companies->count() : 0;
+        $companies = [];
+        $companyPage = 1;
+        $companyPageCount = 1;
+        $companyPageLinks = [1];
+        $companyRangeStart = 0;
+        $companyRangeEnd = 0;
+
+        if ($section === 'companies') {
+            $perPage = 10;
+            $companyPageCount = max(1, (int) ceil($companyCount / $perPage));
+            $requestedPage = filter_input(INPUT_GET, 'page', FILTER_VALIDATE_INT);
+            $companyPage = is_int($requestedPage) && $requestedPage > 0 ? min($requestedPage, $companyPageCount) : 1;
+            if (isset($_GET['page']) && (!is_int($requestedPage) || $requestedPage !== $companyPage)) {
+                $location = $companyPage === 1 ? '/dashboard/companies' : '/dashboard/companies?page=' . $companyPage;
+                header('Location: ' . $location);
+                exit;
+            }
+            $companies = $companyCount === 0 ? [] : $this->companies->page($companyPage, $perPage);
+            $companyPageLinks = $this->pageLinks($companyPage, $companyPageCount);
+            $companyRangeStart = (($companyPage - 1) * $perPage) + 1;
+            $companyRangeEnd = min($companyCount, $companyPage * $perPage);
+        }
+
+        $venueSearch = '';
+        $venueCount = $section === 'overview' ? $this->venues->count() : 0;
+        $venues = [];
+        $venuePage = 1;
+        $venuePageCount = 1;
+        $venuePageLinks = [1];
+        $venueRangeStart = 0;
+        $venueRangeEnd = 0;
+
+        if ($section === 'venues') {
+            $venueSearch = trim((string) ($_GET['q'] ?? ''));
+            if (strlen($venueSearch) > 120) {
+                $venueSearch = substr($venueSearch, 0, 120);
+            }
+            $searchTerm = $venueSearch === '' ? null : $venueSearch;
+            $venueCount = $this->venues->count($searchTerm);
+            $perPage = 10;
+            $venuePageCount = max(1, (int) ceil($venueCount / $perPage));
+            $requestedPage = filter_input(INPUT_GET, 'page', FILTER_VALIDATE_INT);
+            $venuePage = is_int($requestedPage) && $requestedPage > 0 ? min($requestedPage, $venuePageCount) : 1;
+            if (isset($_GET['page']) && (!is_int($requestedPage) || $requestedPage !== $venuePage)) {
+                header('Location: ' . $this->venuesListLocation($venuePage, $venueSearch));
+                exit;
+            }
+            $venues = $venueCount === 0 ? [] : $this->venues->page($venuePage, $perPage, $searchTerm);
+            $venuePageLinks = $this->pageLinks($venuePage, $venuePageCount);
+            $venueRangeStart = (($venuePage - 1) * $perPage) + 1;
+            $venueRangeEnd = min($venueCount, $venuePage * $perPage);
+        }
+
         $enquiries = in_array($section, ['overview', 'enquiries'], true) ? $this->enquiries() : [];
-        $pageTitle = $pages[$section]['title'];
+        $invoiceCompanies = [];
+        $selectedInvoice = null;
+
+        if ($section === 'documents' && $subsection === 'invoices') {
+            foreach ($this->companies->all() as $company) {
+                $invoiceCompanies[] = [
+                    'id' => (int) $company['id'],
+                    'name' => (string) $company['name'],
+                    'invoices' => [],
+                ];
+            }
+        }
+
         $currentSection = $section;
-        $sectionLabel = trim(strtok($pageTitle, '|'));
-        $breadcrumbs = $section === 'overview'
-            ? [['label' => 'Dashboard']]
-            : [
+        $currentDocument = $subsection ?? '';
+
+        if ($subsection !== null) {
+            $page = $pages[$section]['children'][$subsection];
+            $pageTitle = $page['title'];
+            $breadcrumbs = [
                 ['label' => 'Dashboard', 'href' => '/dashboard'],
-                ['label' => $sectionLabel],
+                ['label' => 'Documents', 'href' => '/dashboard/documents'],
+                ['label' => $page['label']],
             ];
+            $view = $page['view'];
+        } else {
+            $pageTitle = $pages[$section]['title'];
+            $sectionLabel = trim(strtok($pageTitle, '|'));
+            $breadcrumbs = $section === 'overview'
+                ? [['label' => 'Dashboard']]
+                : [
+                    ['label' => 'Dashboard', 'href' => '/dashboard'],
+                    ['label' => $sectionLabel],
+                ];
+            $view = $pages[$section]['view'];
+        }
 
         ob_start();
-        require $pages[$section]['view'];
+        require $view;
         $content = ob_get_clean();
 
         require __DIR__ . '/../Views/layouts/dashboard.php';
     }
 
-    private function eventPageLinks(int $current, int $last): array
+    private function pageLinks(int $current, int $last): array
     {
         if ($last <= 7) {
             return range(1, $last);
@@ -134,6 +278,23 @@ class DashboardController
         $pages[] = $last;
 
         return $pages;
+    }
+
+    private function venuesListLocation(int $page, string $search): string
+    {
+        $query = [];
+        if ($search !== '') {
+            $query['q'] = $search;
+        }
+        if ($page > 1) {
+            $query['page'] = (string) $page;
+        }
+
+        if ($query === []) {
+            return '/dashboard/venues';
+        }
+
+        return '/dashboard/venues?' . http_build_query($query);
     }
 
     private function enquiries(): array

@@ -24,6 +24,8 @@ class EventController
 
         $error = '';
         $title = '';
+        $company = '';
+        $location = '';
         $eventDate = '';
         $status = 'planned';
         $finance = 'quotes';
@@ -33,13 +35,23 @@ class EventController
             $input = $this->readEventInput();
             $error = $input['error'];
             $title = $input['title'];
+            $company = $input['company'];
+            $location = $input['location'];
             $eventDate = $input['eventDate'];
             $status = $input['status'];
             $finance = $input['finance'];
             $attendants = $input['attendants'];
 
             if ($error === '') {
-                $this->events->create($title, $input['storedDate'], $status, $finance, $input['attendantCount']);
+                $this->events->create(
+                    $title,
+                    $input['storedCompany'],
+                    $input['storedLocation'],
+                    $input['storedDate'],
+                    $status,
+                    $finance,
+                    $input['attendantCount']
+                );
                 header('Location: ' . $this->eventsLocation());
                 exit;
             }
@@ -78,6 +90,8 @@ class EventController
 
         $error = '';
         $title = (string) $event['title'];
+        $company = (string) ($event['company'] ?? '');
+        $location = (string) ($event['location'] ?? '');
         $eventDate = (string) ($event['event_date'] ?? '');
         $status = (string) $event['status'];
         $finance = (string) $event['finance'];
@@ -87,13 +101,24 @@ class EventController
             $input = $this->readEventInput();
             $error = $input['error'];
             $title = $input['title'];
+            $company = $input['company'];
+            $location = $input['location'];
             $eventDate = $input['eventDate'];
             $status = $input['status'];
             $finance = $input['finance'];
             $attendants = $input['attendants'];
 
             if ($error === '') {
-                $this->events->update($id, $title, $input['storedDate'], $status, $finance, $input['attendantCount']);
+                $this->events->update(
+                    $id,
+                    $title,
+                    $input['storedCompany'],
+                    $input['storedLocation'],
+                    $input['storedDate'],
+                    $status,
+                    $finance,
+                    $input['attendantCount']
+                );
                 header('Location: ' . $this->eventsLocation());
                 exit;
             }
@@ -197,16 +222,24 @@ class EventController
     private function readEventInput(): array
     {
         $title = trim($_POST['title'] ?? '');
+        $company = trim($_POST['company'] ?? '');
+        $location = trim($_POST['location'] ?? '');
         $eventDate = trim($_POST['event_date'] ?? '');
         $status = $_POST['status'] ?? '';
         $finance = $_POST['finance'] ?? '';
         $attendants = trim($_POST['attendants'] ?? '');
+        $storedCompany = null;
+        $storedLocation = null;
         $storedDate = null;
         $attendantCount = 0;
         $error = '';
 
         if ($title === '' || strlen($title) > 180) {
             $error = 'Enter an event title of 180 characters or fewer.';
+        } elseif (strlen($company) > 180) {
+            $error = 'Enter a company name of 180 characters or fewer.';
+        } elseif (strlen($location) > 255) {
+            $error = 'Enter a location of 255 characters or fewer.';
         } elseif ($eventDate !== '') {
             $date = DateTimeImmutable::createFromFormat('!Y-m-d', $eventDate);
             if (!$date instanceof DateTimeImmutable || $date->format('Y-m-d') !== $eventDate) {
@@ -228,11 +261,17 @@ class EventController
             $error = 'Enter the number of attendants as a whole number.';
         } elseif ($error === '') {
             $attendantCount = (int) $attendants;
+            $storedCompany = $company === '' ? null : $company;
+            $storedLocation = $location === '' ? null : $location;
         }
 
         return [
             'error' => $error,
             'title' => $title,
+            'company' => $company,
+            'storedCompany' => $storedCompany,
+            'location' => $location,
+            'storedLocation' => $storedLocation,
             'eventDate' => $eventDate,
             'storedDate' => $storedDate,
             'status' => $status,
