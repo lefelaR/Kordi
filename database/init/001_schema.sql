@@ -42,6 +42,7 @@ CREATE TABLE IF NOT EXISTS events (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(180) NOT NULL,
     company VARCHAR(180) NULL,
+    location VARCHAR(255) NULL,
     event_date DATE NULL,
     status VARCHAR(40) NOT NULL DEFAULT 'planned',
     finance VARCHAR(40) NOT NULL DEFAULT 'quotes',

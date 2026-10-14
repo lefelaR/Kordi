@@ -13,7 +13,7 @@
     ]));
     $venueCancelHref = '/dashboard/venues' . ($venueCancelQuery !== '' ? '?' . $venueCancelQuery : '');
     ?>
-    <form class="dashboard-form dashboard-form-with-details" method="post" action="<?= htmlspecialchars($formAction, ENT_QUOTES, 'UTF-8') ?>">
+    <form class="dashboard-form dashboard-form-with-details" method="post" action="<?= htmlspecialchars($formAction, ENT_QUOTES, 'UTF-8') ?>" data-venue-form>
         <input type="hidden" name="page" value="<?= (int) ($venuePage ?? 1) ?>">
         <?php if (($venueSearch ?? '') !== ''): ?>
             <input type="hidden" name="q" value="<?= htmlspecialchars($venueSearch, ENT_QUOTES, 'UTF-8') ?>">
@@ -27,7 +27,14 @@
             </label>
             <label>
                 Location
-                <input type="text" name="location" maxlength="255" value="<?= htmlspecialchars($location, ENT_QUOTES, 'UTF-8') ?>">
+                <div class="dashboard-location-field">
+                    <input type="text" name="location" maxlength="255" value="<?= htmlspecialchars($location, ENT_QUOTES, 'UTF-8') ?>">
+                    <button class="dashboard-location-picker" type="button" data-venue-map-open aria-haspopup="dialog" aria-controls="venue-map-modal" aria-label="Pick location on map">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z" />
+                        </svg>
+                    </button>
+                </div>
             </label>
             <label>
                 Price
@@ -61,9 +68,28 @@
             Details
             <textarea name="details" rows="12" maxlength="5000"><?= htmlspecialchars($details, ENT_QUOTES, 'UTF-8') ?></textarea>
         </label>
-        <div class="dashboard-venue-map" data-venue-map>
-            <p class="dashboard-venue-map-hint">Map pin follows the location field. Click or drag to adjust.</p>
-            <div class="dashboard-venue-map-canvas" data-venue-map-canvas role="img" aria-label="Venue location map"></div>
-        </div>
     </form>
+
+    <dialog class="dashboard-map-modal" id="venue-map-modal" data-venue-map-modal>
+        <div class="dashboard-map-modal-card">
+            <header class="dashboard-map-modal-header">
+                <div>
+                    <h2>Pick location</h2>
+                    <p>Click the map to set the address.</p>
+                </div>
+                <button class="dashboard-button dashboard-button-secondary dashboard-icon-button" type="button" data-venue-map-close aria-label="Close map">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M18 6 6 18" />
+                        <path d="m6 6 12 12" />
+                    </svg>
+                </button>
+            </header>
+            <div class="dashboard-map-modal-canvas" data-venue-map-modal-canvas role="img" aria-label="Choose venue location on map"></div>
+            <p class="dashboard-map-modal-address" data-venue-map-modal-address>Click a point on the map.</p>
+            <div class="dashboard-map-modal-actions">
+                <button class="dashboard-button" type="button" data-venue-map-apply disabled>Use location</button>
+                <button class="dashboard-button dashboard-button-secondary" type="button" data-venue-map-close>Cancel</button>
+            </div>
+        </div>
+    </dialog>
 </section>

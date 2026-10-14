@@ -20,6 +20,7 @@
                 <tr>
                     <th>Event</th>
                     <th>Company</th>
+                    <th>Location</th>
                     <th>Date</th>
                     <th>Status</th>
                     <th>Finance</th>
@@ -30,7 +31,7 @@
             <tbody>
                 <?php if ($events === []): ?>
                     <tr>
-                        <td class="dashboard-empty" colspan="7">No events yet.</td>
+                        <td class="dashboard-empty" colspan="8">No events yet.</td>
                     </tr>
                 <?php else: ?>
                     <?php foreach ($events as $event): ?>
@@ -41,10 +42,12 @@
                             $dateLabel = $date instanceof DateTimeImmutable ? $date->format('j M Y') : $event['event_date'];
                         }
                         $companyLabel = trim((string) ($event['company'] ?? ''));
+                        $locationLabel = trim((string) ($event['location'] ?? ''));
                         ?>
                         <tr>
                             <td><?= htmlspecialchars($event['title'], ENT_QUOTES, 'UTF-8') ?></td>
                             <td><?= htmlspecialchars($companyLabel !== '' ? $companyLabel : '—', ENT_QUOTES, 'UTF-8') ?></td>
+                            <td><?= htmlspecialchars($locationLabel !== '' ? $locationLabel : '—', ENT_QUOTES, 'UTF-8') ?></td>
                             <td><?= htmlspecialchars($dateLabel, ENT_QUOTES, 'UTF-8') ?></td>
                             <td>
                                 <?php $statusClass = in_array($event['status'], ['planned', 'confirmed', 'completed'], true) ? 'dashboard-status-' . $event['status'] : ''; ?>

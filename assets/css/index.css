@@ -881,33 +881,124 @@ nav.dashboard-breadcrumb .dashboard-breadcrumb-separator svg {
 	max-width: none;
 }
 
-.dashboard-venue-map {
-	grid-column: 1 / -1;
+.dashboard-location-field {
+	position: relative;
 	display: flex;
-	flex-direction: column;
-	gap: 8px;
+	align-items: center;
 }
 
-.dashboard-venue-map-hint {
+.dashboard-location-field input {
+	width: 100%;
+	padding-right: 40px;
+}
+
+.dashboard-location-picker {
+	position: absolute;
+	right: 6px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	padding: 0;
+	border: 0;
+	border-radius: calc(var(--radius) - 2px);
+	background: transparent;
+	color: var(--muted-foreground);
+	cursor: pointer;
+}
+
+.dashboard-location-picker:hover {
+	background: var(--accent);
+	color: var(--accent-foreground);
+}
+
+.dashboard-location-picker:focus-visible {
+	outline: 2px solid var(--ring);
+	outline-offset: 1px;
+}
+
+.dashboard-location-picker svg {
+	width: 18px;
+	height: 18px;
+}
+
+.dashboard-map-modal {
+	width: min(56rem, calc(100vw - 2rem));
+	max-width: calc(100vw - 2rem);
+	padding: 0;
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	background: transparent;
+	color: var(--foreground);
+}
+
+.dashboard-map-modal::backdrop {
+	background: oklch(0.141 0.005 285.823 / 0.45);
+}
+
+.dashboard-map-modal-card {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	padding: 16px;
+	background: var(--card);
+	border-radius: var(--radius);
+}
+
+.dashboard-map-modal-header {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 12px;
+}
+
+.dashboard-map-modal-header h2 {
 	margin: 0;
+	font-size: 18px;
+	font-weight: 600;
+}
+
+.dashboard-map-modal-header p {
+	margin: 4px 0 0;
 	color: var(--muted-foreground);
 	font-size: 13px;
 	font-weight: 400;
 }
 
-.dashboard-venue-map-canvas {
+.dashboard-map-modal-canvas {
 	width: 100%;
-	height: 22rem;
+	height: min(28rem, 60vh);
 	border: 1px solid var(--border);
 	border-radius: var(--radius);
 	overflow: hidden;
 	background: var(--muted);
 }
 
-.dashboard-venue-map-canvas .leaflet-container {
+.dashboard-map-modal-canvas .leaflet-container {
 	width: 100%;
 	height: 100%;
 	font: inherit;
+}
+
+.dashboard-map-modal-address {
+	margin: 0;
+	min-height: 1.25rem;
+	color: var(--muted-foreground);
+	font-size: 13px;
+	font-weight: 400;
+	line-height: 1.4;
+}
+
+.dashboard-map-modal-actions {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.dashboard-map-modal-actions .dashboard-button:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
 }
 
 .dashboard-form-fields {

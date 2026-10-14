@@ -1,14 +1,20 @@
 (() => {
-    const root = document.querySelector('[data-venue-map]');
-    if (!root || typeof L === 'undefined') {
+    const form = document.querySelector('[data-venue-form]');
+    const modal = document.querySelector('[data-venue-map-modal]');
+    const openButton = document.querySelector('[data-venue-map-open]');
+    if (!form || !modal || !openButton || typeof L === 'undefined') {
         return;
     }
 
-    const mapElement = root.querySelector('[data-venue-map-canvas]');
-    const locationInput = document.querySelector('input[name="location"]');
-    const latitudeInput = document.querySelector('input[name="latitude"]');
-    const longitudeInput = document.querySelector('input[name="longitude"]');
-    if (!mapElement || !locationInput || !latitudeInput || !longitudeInput) {
+    const mapElement = modal.querySelector('[data-venue-map-modal-canvas]');
+    const addressElement = modal.querySelector('[data-venue-map-modal-address]');
+    const applyButton = modal.querySelector('[data-venue-map-apply]');
+    const closeButtons = modal.querySelectorAll('[data-venue-map-close]');
+    const locationInput = form.querySelector('input[name="location"]');
+    const latitudeInput = form.querySelector('input[name="latitude"]');
+    const longitudeInput = form.querySelector('input[name="longitude"]');
+
+    if (!mapElement || !addressElement || !applyButton || !locationInput || !latitudeInput || !longitudeInput) {
         return;
     }
 
@@ -22,15 +28,10 @@
         shadowUrl: '/assets/leaflet/images/marker-shadow.png',
     });
 
-    const map = L.map(mapElement).setView(defaultCenter, defaultZoom);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    }).addTo(map);
-
+    let map = null;
     let marker = null;
-    let geocodeId = 0;
-    let debounceId = 0;
+    let reverseId = 0;
+    let pending = null;
 
     const parseCoordinate = (value) => {
         if (value === '' || value == null) {
@@ -40,96 +41,166 @@
         return Number.isFinite(number) ? number : null;
     };
 
-    const setMarker = (lat, lng, { fly = true } = {}) => {
+    const ensureMap = () => {
+        if (map) {
+            return map;
+        }
+
+        map = L.map(mapElement).setView(defaultCenter, defaultZoom);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        }).addTo(map);
+
+        map.on('click', (event) => {
+            setPending(event.latlng.lat, event.latlng.lng);
+        });
+
+        return map;
+    };
+
+    const setMarker = (lat, lng) => {
         const position = [lat, lng];
         if (marker) {
             marker.setLatLng(position);
         } else {
-            marker = L.marker(position, { draggable: true }).addTo(map);
-            marker.on('dragend', () => {
-                const next = marker.getLatLng();
-                writeCoordinates(next.lat, next.lng);
-            });
+            marker = L.marker(position).addTo(map);
         }
-        writeCoordinates(lat, lng);
-        if (fly) {
-            map.flyTo(position, Math.max(map.getZoom(), markerZoom));
-        } else {
-            map.setView(position, Math.max(map.getZoom(), markerZoom));
-        }
+        map.setView(position, Math.max(map.getZoom(), markerZoom));
     };
 
-    const clearMarker = () => {
-        if (marker) {
-            map.removeLayer(marker);
-            marker = null;
+    const formatAddress = (result) => {
+        if (!result || typeof result !== 'object') {
+            return '';
         }
-        latitudeInput.value = '';
-        longitudeInput.value = '';
-        map.setView(defaultCenter, defaultZoom);
+        if (typeof result.display_name === 'string' && result.display_name.trim() !== '') {
+            return result.display_name.trim();
+        }
+        return '';
     };
 
-    const writeCoordinates = (lat, lng) => {
-        latitudeInput.value = lat.toFixed(7);
-        longitudeInput.value = lng.toFixed(7);
-    };
+    const setPending = async (lat, lng) => {
+        setMarker(lat, lng);
+        pending = { lat, lng, address: '' };
+        applyButton.disabled = true;
+        addressElement.textContent = 'Looking up address…';
 
-    const geocodeLocation = async (query) => {
-        const trimmed = query.trim();
-        if (trimmed === '') {
-            clearMarker();
-            return;
-        }
-
-        const requestId = ++geocodeId;
-        const url = 'https://nominatim.openstreetmap.org/search?' + new URLSearchParams({
+        const requestId = ++reverseId;
+        const url = 'https://nominatim.openstreetmap.org/reverse?' + new URLSearchParams({
             format: 'json',
-            q: trimmed,
-            limit: '1',
+            lat: String(lat),
+            lon: String(lng),
+            zoom: '18',
+            addressdetails: '1',
         }).toString();
 
         try {
             const response = await fetch(url, {
                 headers: { Accept: 'application/json' },
             });
-            if (!response.ok || requestId !== geocodeId) {
+            if (!response.ok || requestId !== reverseId) {
                 return;
             }
-            const results = await response.json();
-            if (requestId !== geocodeId || !Array.isArray(results) || results.length === 0) {
+            const result = await response.json();
+            if (requestId !== reverseId) {
                 return;
             }
-            const lat = Number(results[0].lat);
-            const lng = Number(results[0].lon);
-            if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-                return;
-            }
-            setMarker(lat, lng);
+            const address = formatAddress(result);
+            pending = {
+                lat,
+                lng,
+                address: address !== '' ? address : lat.toFixed(5) + ', ' + lng.toFixed(5),
+            };
+            addressElement.textContent = pending.address;
+            applyButton.disabled = false;
         } catch (error) {
-            // Keep any existing pin if geocoding fails.
+            if (requestId !== reverseId) {
+                return;
+            }
+            pending = {
+                lat,
+                lng,
+                address: lat.toFixed(5) + ', ' + lng.toFixed(5),
+            };
+            addressElement.textContent = pending.address;
+            applyButton.disabled = false;
         }
     };
 
-    const initialLat = parseCoordinate(latitudeInput.value);
-    const initialLng = parseCoordinate(longitudeInput.value);
-    if (initialLat !== null && initialLng !== null) {
-        setMarker(initialLat, initialLng, { fly: false });
-    } else if (locationInput.value.trim() !== '') {
-        geocodeLocation(locationInput.value);
-    }
+    const openModal = () => {
+        ensureMap();
+        pending = null;
+        applyButton.disabled = true;
 
-    locationInput.addEventListener('input', () => {
-        window.clearTimeout(debounceId);
-        debounceId = window.setTimeout(() => {
-            geocodeLocation(locationInput.value);
-        }, 500);
+        const lat = parseCoordinate(latitudeInput.value);
+        const lng = parseCoordinate(longitudeInput.value);
+        if (lat !== null && lng !== null) {
+            setMarker(lat, lng);
+            pending = {
+                lat,
+                lng,
+                address: locationInput.value.trim(),
+            };
+            addressElement.textContent = pending.address !== ''
+                ? pending.address
+                : 'Current pin selected. Click elsewhere to change.';
+            applyButton.disabled = false;
+        } else {
+            if (marker) {
+                map.removeLayer(marker);
+                marker = null;
+            }
+            map.setView(defaultCenter, defaultZoom);
+            addressElement.textContent = 'Click a point on the map.';
+        }
+
+        if (typeof modal.showModal === 'function') {
+            modal.showModal();
+        } else {
+            modal.setAttribute('open', '');
+        }
+
+        window.setTimeout(() => {
+            map.invalidateSize();
+            if (lat !== null && lng !== null) {
+                map.setView([lat, lng], Math.max(map.getZoom(), markerZoom));
+            }
+        }, 50);
+    };
+
+    const closeModal = () => {
+        if (typeof modal.close === 'function') {
+            modal.close();
+        } else {
+            modal.removeAttribute('open');
+        }
+    };
+
+    const applySelection = () => {
+        if (!pending) {
+            return;
+        }
+        locationInput.value = pending.address.slice(0, 255);
+        latitudeInput.value = pending.lat.toFixed(7);
+        longitudeInput.value = pending.lng.toFixed(7);
+        locationInput.dispatchEvent(new Event('input', { bubbles: true }));
+        closeModal();
+    };
+
+    openButton.addEventListener('click', openModal);
+    applyButton.addEventListener('click', applySelection);
+    closeButtons.forEach((button) => {
+        button.addEventListener('click', closeModal);
     });
 
-    map.on('click', (event) => {
-        setMarker(event.latlng.lat, event.latlng.lng);
+    modal.addEventListener('click', (event) => {
+        if (event.target === modal) {
+            closeModal();
+        }
     });
 
-    window.setTimeout(() => {
-        map.invalidateSize();
-    }, 0);
+    modal.addEventListener('cancel', (event) => {
+        event.preventDefault();
+        closeModal();
+    });
 })();

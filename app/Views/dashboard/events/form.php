@@ -17,6 +17,10 @@
             <input type="text" name="company" maxlength="180" value="<?= htmlspecialchars($company ?? '', ENT_QUOTES, 'UTF-8') ?>">
         </label>
         <label>
+            Location
+            <input type="text" name="location" maxlength="255" value="<?= htmlspecialchars($location ?? '', ENT_QUOTES, 'UTF-8') ?>">
+        </label>
+        <label>
             Date
             <input type="date" name="event_date" value="<?= htmlspecialchars($eventDate, ENT_QUOTES, 'UTF-8') ?>">
         </label>
