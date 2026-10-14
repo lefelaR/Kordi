@@ -32,6 +32,9 @@ CREATE TABLE IF NOT EXISTS venues (
     location VARCHAR(255) NULL,
     price DECIMAL(12, 2) NULL,
     capacity INT UNSIGNED NULL,
+    details TEXT NULL,
+    latitude DECIMAL(10, 7) NULL,
+    longitude DECIMAL(10, 7) NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 

@@ -873,6 +873,49 @@ nav.dashboard-breadcrumb .dashboard-breadcrumb-separator svg {
 	margin-top: 24px;
 }
 
+.dashboard-form-with-details {
+	display: grid;
+	grid-template-columns: minmax(0, 32rem) minmax(0, 1fr);
+	gap: 24px;
+	align-items: start;
+	max-width: none;
+}
+
+.dashboard-venue-map {
+	grid-column: 1 / -1;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.dashboard-venue-map-hint {
+	margin: 0;
+	color: var(--muted-foreground);
+	font-size: 13px;
+	font-weight: 400;
+}
+
+.dashboard-venue-map-canvas {
+	width: 100%;
+	height: 22rem;
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	overflow: hidden;
+	background: var(--muted);
+}
+
+.dashboard-venue-map-canvas .leaflet-container {
+	width: 100%;
+	height: 100%;
+	font: inherit;
+}
+
+.dashboard-form-fields {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
 .dashboard-form label {
 	display: flex;
 	flex-direction: column;
@@ -881,8 +924,20 @@ nav.dashboard-breadcrumb .dashboard-breadcrumb-separator svg {
 	font-weight: 500;
 }
 
+.dashboard-form-details {
+	min-height: 100%;
+}
+
+.dashboard-form-details textarea {
+	flex: 1;
+	min-height: 18rem;
+	resize: vertical;
+	margin-bottom: 0;
+}
+
 .dashboard-form input,
-.dashboard-form select {
+.dashboard-form select,
+.dashboard-form textarea {
 	padding: 8px 12px;
 	border: 1px solid var(--input);
 	border-radius: var(--radius);
@@ -894,7 +949,8 @@ nav.dashboard-breadcrumb .dashboard-breadcrumb-separator svg {
 }
 
 .dashboard-form input:focus,
-.dashboard-form select:focus {
+.dashboard-form select:focus,
+.dashboard-form textarea:focus {
 	outline: 2px solid var(--ring);
 	outline-offset: 1px;
 }
@@ -1495,6 +1551,7 @@ nav.dashboard-pagination span {
 
 	.dashboard-metric-grid,
 	.dashboard-section-grid,
+	.dashboard-form-with-details,
 	.dashboard-split,
 	.dashboard-invoice-layout {
 		grid-template-columns: 1fr;

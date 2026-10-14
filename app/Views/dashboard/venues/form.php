@@ -13,45 +13,57 @@
     ]));
     $venueCancelHref = '/dashboard/venues' . ($venueCancelQuery !== '' ? '?' . $venueCancelQuery : '');
     ?>
-    <form class="dashboard-form" method="post" action="<?= htmlspecialchars($formAction, ENT_QUOTES, 'UTF-8') ?>">
+    <form class="dashboard-form dashboard-form-with-details" method="post" action="<?= htmlspecialchars($formAction, ENT_QUOTES, 'UTF-8') ?>">
         <input type="hidden" name="page" value="<?= (int) ($venuePage ?? 1) ?>">
         <?php if (($venueSearch ?? '') !== ''): ?>
             <input type="hidden" name="q" value="<?= htmlspecialchars($venueSearch, ENT_QUOTES, 'UTF-8') ?>">
         <?php endif; ?>
-        <label>
-            Name
-            <input type="text" name="name" maxlength="180" required value="<?= htmlspecialchars($name, ENT_QUOTES, 'UTF-8') ?>">
+        <input type="hidden" name="latitude" value="<?= htmlspecialchars($latitude, ENT_QUOTES, 'UTF-8') ?>">
+        <input type="hidden" name="longitude" value="<?= htmlspecialchars($longitude, ENT_QUOTES, 'UTF-8') ?>">
+        <div class="dashboard-form-fields">
+            <label>
+                Name
+                <input type="text" name="name" maxlength="180" required value="<?= htmlspecialchars($name, ENT_QUOTES, 'UTF-8') ?>">
+            </label>
+            <label>
+                Location
+                <input type="text" name="location" maxlength="255" value="<?= htmlspecialchars($location, ENT_QUOTES, 'UTF-8') ?>">
+            </label>
+            <label>
+                Price
+                <input type="text" name="price" inputmode="decimal" maxlength="15" value="<?= htmlspecialchars($price, ENT_QUOTES, 'UTF-8') ?>">
+            </label>
+            <label>
+                Capacity
+                <input type="number" name="capacity" min="1" step="1" value="<?= htmlspecialchars($capacity, ENT_QUOTES, 'UTF-8') ?>">
+            </label>
+            <div class="dashboard-form-actions">
+                <button class="dashboard-button<?= !empty($actionIcons) ? ' dashboard-button-with-icon' : '' ?>" type="submit">
+                    <?php if (!empty($actionIcons)): ?>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M20 6 9 17l-5-5" />
+                        </svg>
+                    <?php endif; ?>
+                    Save
+                </button>
+                <a class="dashboard-button dashboard-button-secondary<?= !empty($actionIcons) ? ' dashboard-button-with-icon' : '' ?>" href="<?= htmlspecialchars($venueCancelHref, ENT_QUOTES, 'UTF-8') ?>">
+                    <?php if (!empty($actionIcons)): ?>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M18 6 6 18" />
+                            <path d="m6 6 12 12" />
+                        </svg>
+                    <?php endif; ?>
+                    Cancel
+                </a>
+            </div>
+        </div>
+        <label class="dashboard-form-details">
+            Details
+            <textarea name="details" rows="12" maxlength="5000"><?= htmlspecialchars($details, ENT_QUOTES, 'UTF-8') ?></textarea>
         </label>
-        <label>
-            Location
-            <input type="text" name="location" maxlength="255" value="<?= htmlspecialchars($location, ENT_QUOTES, 'UTF-8') ?>">
-        </label>
-        <label>
-            Price
-            <input type="text" name="price" inputmode="decimal" maxlength="15" value="<?= htmlspecialchars($price, ENT_QUOTES, 'UTF-8') ?>">
-        </label>
-        <label>
-            Capacity
-            <input type="number" name="capacity" min="1" step="1" value="<?= htmlspecialchars($capacity, ENT_QUOTES, 'UTF-8') ?>">
-        </label>
-        <div class="dashboard-form-actions">
-            <button class="dashboard-button<?= !empty($actionIcons) ? ' dashboard-button-with-icon' : '' ?>" type="submit">
-                <?php if (!empty($actionIcons)): ?>
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M20 6 9 17l-5-5" />
-                    </svg>
-                <?php endif; ?>
-                Save
-            </button>
-            <a class="dashboard-button dashboard-button-secondary<?= !empty($actionIcons) ? ' dashboard-button-with-icon' : '' ?>" href="<?= htmlspecialchars($venueCancelHref, ENT_QUOTES, 'UTF-8') ?>">
-                <?php if (!empty($actionIcons)): ?>
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M18 6 6 18" />
-                        <path d="m6 6 12 12" />
-                    </svg>
-                <?php endif; ?>
-                Cancel
-            </a>
+        <div class="dashboard-venue-map" data-venue-map>
+            <p class="dashboard-venue-map-hint">Map pin follows the location field. Click or drag to adjust.</p>
+            <div class="dashboard-venue-map-canvas" data-venue-map-canvas role="img" aria-label="Venue location map"></div>
         </div>
     </form>
 </section>

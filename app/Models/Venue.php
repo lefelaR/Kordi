@@ -68,7 +68,7 @@ class Venue
     public function find(int $id): ?array
     {
         $statement = $this->database->prepare(
-            'SELECT id, name, location, price, capacity FROM venues WHERE id = :id'
+            'SELECT id, name, location, price, capacity, details, latitude, longitude FROM venues WHERE id = :id'
         );
         $statement->execute(['id' => $id]);
         $venue = $statement->fetch();
@@ -76,23 +76,43 @@ class Venue
         return $venue === false ? null : $venue;
     }
 
-    public function create(string $name, ?string $location, ?string $price, ?int $capacity): void
-    {
+    public function create(
+        string $name,
+        ?string $location,
+        ?string $price,
+        ?int $capacity,
+        ?string $details,
+        ?string $latitude,
+        ?string $longitude,
+    ): void {
         $statement = $this->database->prepare(
-            'INSERT INTO venues (name, location, price, capacity) VALUES (:name, :location, :price, :capacity)'
+            'INSERT INTO venues (name, location, price, capacity, details, latitude, longitude)'
+            . ' VALUES (:name, :location, :price, :capacity, :details, :latitude, :longitude)'
         );
         $statement->execute([
             'name' => $name,
             'location' => $location,
             'price' => $price,
             'capacity' => $capacity,
+            'details' => $details,
+            'latitude' => $latitude,
+            'longitude' => $longitude,
         ]);
     }
 
-    public function update(int $id, string $name, ?string $location, ?string $price, ?int $capacity): void
-    {
+    public function update(
+        int $id,
+        string $name,
+        ?string $location,
+        ?string $price,
+        ?int $capacity,
+        ?string $details,
+        ?string $latitude,
+        ?string $longitude,
+    ): void {
         $statement = $this->database->prepare(
-            'UPDATE venues SET name = :name, location = :location, price = :price, capacity = :capacity WHERE id = :id'
+            'UPDATE venues SET name = :name, location = :location, price = :price, capacity = :capacity,'
+            . ' details = :details, latitude = :latitude, longitude = :longitude WHERE id = :id'
         );
         $statement->execute([
             'id' => $id,
@@ -100,6 +120,9 @@ class Venue
             'location' => $location,
             'price' => $price,
             'capacity' => $capacity,
+            'details' => $details,
+            'latitude' => $latitude,
+            'longitude' => $longitude,
         ]);
     }
 

@@ -23,6 +23,9 @@ class VenueController
         $location = '';
         $price = '';
         $capacity = '';
+        $details = '';
+        $latitude = '';
+        $longitude = '';
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $input = $this->readVenueInput();
@@ -31,9 +34,20 @@ class VenueController
             $location = $input['location'];
             $price = $input['price'];
             $capacity = $input['capacity'];
+            $details = $input['details'];
+            $latitude = $input['latitude'];
+            $longitude = $input['longitude'];
 
             if ($error === '') {
-                $this->venues->create($name, $input['storedLocation'], $input['storedPrice'], $input['storedCapacity']);
+                $this->venues->create(
+                    $name,
+                    $input['storedLocation'],
+                    $input['storedPrice'],
+                    $input['storedCapacity'],
+                    $input['storedDetails'],
+                    $input['storedLatitude'],
+                    $input['storedLongitude']
+                );
                 header('Location: ' . $this->venuesLocation());
                 exit;
             }
@@ -51,6 +65,11 @@ class VenueController
         $formAction = '/venues/add';
         $heading = 'Add venue';
         $summary = 'Save a venue to the venues list.';
+        $extraStylesheets = ['/assets/leaflet/leaflet.css'];
+        $extraScripts = [
+            '/assets/leaflet/leaflet.js',
+            '/assets/js/venue-map.js',
+        ];
 
         ob_start();
         require __DIR__ . '/../Views/dashboard/venues/form.php';
@@ -77,6 +96,9 @@ class VenueController
         $location = (string) ($venue['location'] ?? '');
         $price = $venue['price'] === null ? '' : (string) $venue['price'];
         $capacity = $venue['capacity'] === null ? '' : (string) $venue['capacity'];
+        $details = (string) ($venue['details'] ?? '');
+        $latitude = $venue['latitude'] === null ? '' : (string) $venue['latitude'];
+        $longitude = $venue['longitude'] === null ? '' : (string) $venue['longitude'];
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $input = $this->readVenueInput();
@@ -85,9 +107,21 @@ class VenueController
             $location = $input['location'];
             $price = $input['price'];
             $capacity = $input['capacity'];
+            $details = $input['details'];
+            $latitude = $input['latitude'];
+            $longitude = $input['longitude'];
 
             if ($error === '') {
-                $this->venues->update($id, $name, $input['storedLocation'], $input['storedPrice'], $input['storedCapacity']);
+                $this->venues->update(
+                    $id,
+                    $name,
+                    $input['storedLocation'],
+                    $input['storedPrice'],
+                    $input['storedCapacity'],
+                    $input['storedDetails'],
+                    $input['storedLatitude'],
+                    $input['storedLongitude']
+                );
                 header('Location: ' . $this->venuesLocation());
                 exit;
             }
@@ -106,6 +140,11 @@ class VenueController
         $heading = 'Edit venue';
         $summary = 'Update this venue.';
         $actionIcons = true;
+        $extraStylesheets = ['/assets/leaflet/leaflet.css'];
+        $extraScripts = [
+            '/assets/leaflet/leaflet.js',
+            '/assets/js/venue-map.js',
+        ];
 
         ob_start();
         require __DIR__ . '/../Views/dashboard/venues/form.php';
@@ -191,14 +230,21 @@ class VenueController
         $location = trim($_POST['location'] ?? '');
         $price = trim($_POST['price'] ?? '');
         $capacity = trim($_POST['capacity'] ?? '');
+        $details = trim($_POST['details'] ?? '');
+        $latitude = trim($_POST['latitude'] ?? '');
+        $longitude = trim($_POST['longitude'] ?? '');
         $error = '';
         $storedPrice = null;
         $storedCapacity = null;
+        $storedLatitude = null;
+        $storedLongitude = null;
 
         if ($name === '' || strlen($name) > 180) {
             $error = 'Enter a venue name of 180 characters or fewer.';
         } elseif (strlen($location) > 255) {
             $error = 'Enter a location of 255 characters or fewer.';
+        } elseif (strlen($details) > 5000) {
+            $error = 'Enter details of 5000 characters or fewer.';
         } elseif ($price !== '') {
             if (!preg_match('/^\d+(\.\d{1,2})?$/', $price)) {
                 $error = 'Enter a valid price with up to two decimal places.';
@@ -215,15 +261,42 @@ class VenueController
             }
         }
 
+        if ($error === '') {
+            $hasLatitude = $latitude !== '';
+            $hasLongitude = $longitude !== '';
+            if ($hasLatitude !== $hasLongitude) {
+                $error = 'Set both map coordinates, or clear the pin.';
+            } elseif ($hasLatitude && $hasLongitude) {
+                if (!preg_match('/^-?\d+(\.\d+)?$/', $latitude) || !preg_match('/^-?\d+(\.\d+)?$/', $longitude)) {
+                    $error = 'Enter valid map coordinates.';
+                } else {
+                    $lat = (float) $latitude;
+                    $lng = (float) $longitude;
+                    if ($lat < -90 || $lat > 90 || $lng < -180 || $lng > 180) {
+                        $error = 'Enter valid map coordinates.';
+                    } else {
+                        $storedLatitude = number_format($lat, 7, '.', '');
+                        $storedLongitude = number_format($lng, 7, '.', '');
+                    }
+                }
+            }
+        }
+
         return [
             'error' => $error,
             'name' => $name,
             'location' => $location,
             'price' => $price,
             'capacity' => $capacity,
+            'details' => $details,
+            'latitude' => $latitude,
+            'longitude' => $longitude,
             'storedLocation' => $location === '' ? null : $location,
             'storedPrice' => $storedPrice,
             'storedCapacity' => $storedCapacity,
+            'storedDetails' => $details === '' ? null : $details,
+            'storedLatitude' => $storedLatitude,
+            'storedLongitude' => $storedLongitude,
         ];
     }
 }
