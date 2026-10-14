@@ -7,11 +7,17 @@ use App\Models\Auth;
 use App\Models\Company;
 use App\Models\Event;
 use App\Models\Vendor;
+use App\Models\Venue;
 
 class DashboardController
 {
-    public function __construct(private Auth $auth, private Event $events, private Vendor $vendors, private Company $companies)
-    {
+    public function __construct(
+        private Auth $auth,
+        private Event $events,
+        private Vendor $vendors,
+        private Company $companies,
+        private Venue $venues,
+    ) {
     }
 
     public function show(string $section, ?string $subsection = null): void
@@ -172,6 +178,36 @@ class DashboardController
             $companyRangeEnd = min($companyCount, $companyPage * $perPage);
         }
 
+        $venueSearch = '';
+        $venueCount = $section === 'overview' ? $this->venues->count() : 0;
+        $venues = [];
+        $venuePage = 1;
+        $venuePageCount = 1;
+        $venuePageLinks = [1];
+        $venueRangeStart = 0;
+        $venueRangeEnd = 0;
+
+        if ($section === 'venues') {
+            $venueSearch = trim((string) ($_GET['q'] ?? ''));
+            if (strlen($venueSearch) > 120) {
+                $venueSearch = substr($venueSearch, 0, 120);
+            }
+            $searchTerm = $venueSearch === '' ? null : $venueSearch;
+            $venueCount = $this->venues->count($searchTerm);
+            $perPage = 10;
+            $venuePageCount = max(1, (int) ceil($venueCount / $perPage));
+            $requestedPage = filter_input(INPUT_GET, 'page', FILTER_VALIDATE_INT);
+            $venuePage = is_int($requestedPage) && $requestedPage > 0 ? min($requestedPage, $venuePageCount) : 1;
+            if (isset($_GET['page']) && (!is_int($requestedPage) || $requestedPage !== $venuePage)) {
+                header('Location: ' . $this->venuesListLocation($venuePage, $venueSearch));
+                exit;
+            }
+            $venues = $venueCount === 0 ? [] : $this->venues->page($venuePage, $perPage, $searchTerm);
+            $venuePageLinks = $this->pageLinks($venuePage, $venuePageCount);
+            $venueRangeStart = (($venuePage - 1) * $perPage) + 1;
+            $venueRangeEnd = min($venueCount, $venuePage * $perPage);
+        }
+
         $enquiries = in_array($section, ['overview', 'enquiries'], true) ? $this->enquiries() : [];
         $invoiceCompanies = [];
         $selectedInvoice = null;
@@ -242,6 +278,23 @@ class DashboardController
         $pages[] = $last;
 
         return $pages;
+    }
+
+    private function venuesListLocation(int $page, string $search): string
+    {
+        $query = [];
+        if ($search !== '') {
+            $query['q'] = $search;
+        }
+        if ($page > 1) {
+            $query['page'] = (string) $page;
+        }
+
+        if ($query === []) {
+            return '/dashboard/venues';
+        }
+
+        return '/dashboard/venues?' . http_build_query($query);
     }
 
     private function enquiries(): array

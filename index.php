@@ -7,12 +7,14 @@ require __DIR__ . '/app/Models/Auth.php';
 require __DIR__ . '/app/Models/Event.php';
 require __DIR__ . '/app/Models/Vendor.php';
 require __DIR__ . '/app/Models/Company.php';
+require __DIR__ . '/app/Models/Venue.php';
 require __DIR__ . '/app/Controllers/HomeController.php';
 require __DIR__ . '/app/Controllers/AuthController.php';
 require __DIR__ . '/app/Controllers/DashboardController.php';
 require __DIR__ . '/app/Controllers/EventController.php';
 require __DIR__ . '/app/Controllers/VendorController.php';
 require __DIR__ . '/app/Controllers/CompanyController.php';
+require __DIR__ . '/app/Controllers/VenueController.php';
 
 $requestPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
 $auth = new App\Models\Auth();
@@ -45,6 +47,18 @@ if ($requestPath === '/login') {
     } else {
         $companyController->delete($companyId);
     }
+} elseif ($requestPath === '/venues/add') {
+    $venues = new App\Models\Venue(App\Config\Database::connection());
+    (new App\Controllers\VenueController($auth, $venues))->add();
+} elseif (preg_match('#^/venues/(\d+)/(edit|delete)$#', $requestPath, $matches) === 1) {
+    $venues = new App\Models\Venue(App\Config\Database::connection());
+    $venueController = new App\Controllers\VenueController($auth, $venues);
+    $venueId = (int) $matches[1];
+    if ($matches[2] === 'edit') {
+        $venueController->edit($venueId);
+    } else {
+        $venueController->delete($venueId);
+    }
 } elseif ($requestPath === '/events/add') {
     $events = new App\Models\Event(App\Config\Database::connection());
     (new App\Controllers\EventController($auth, $events))->add();
@@ -64,13 +78,15 @@ if ($requestPath === '/login') {
     $events = new App\Models\Event($database);
     $vendors = new App\Models\Vendor($database);
     $companies = new App\Models\Company($database);
-    (new App\Controllers\DashboardController($auth, $events, $vendors, $companies))->show('documents', $matches[1]);
+    $venues = new App\Models\Venue($database);
+    (new App\Controllers\DashboardController($auth, $events, $vendors, $companies, $venues))->show('documents', $matches[1]);
 } elseif (preg_match('#^/dashboard(?:/([a-z]+))?$#', $requestPath, $matches) === 1) {
     $database = App\Config\Database::connection();
     $events = new App\Models\Event($database);
     $vendors = new App\Models\Vendor($database);
     $companies = new App\Models\Company($database);
-    (new App\Controllers\DashboardController($auth, $events, $vendors, $companies))->show($matches[1] ?? 'overview');
+    $venues = new App\Models\Venue($database);
+    (new App\Controllers\DashboardController($auth, $events, $vendors, $companies, $venues))->show($matches[1] ?? 'overview');
 } else {
     (new App\Controllers\HomeController(new App\Models\EnquiryMailer()))->handle();
 }

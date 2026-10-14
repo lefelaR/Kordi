@@ -18,7 +18,7 @@ $sections = [
     [
         'href' => '/dashboard/venues',
         'title' => 'Venues',
-        'summary' => 'No venues yet.',
+        'summary' => $venueCount === 0 ? 'No venues yet.' : $venueCount . ($venueCount === 1 ? ' venue.' : ' venues.'),
     ],
     [
         'href' => '/dashboard/documents',
