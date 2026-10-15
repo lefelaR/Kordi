@@ -37,6 +37,7 @@ $dashboardLinks = [
         'children' => [
             // 'proposals' => ['label' => 'Proposals', 'href' => '/dashboard/documents/proposals'],
             'invoices' => ['label' => 'Invoices', 'href' => '/dashboard/documents/invoices'],
+            'agreements' => ['label' => 'Agreements', 'href' => '/dashboard/documents/agreements'],
             // 'proofs' => ['label' => 'Proofs', 'href' => '/dashboard/documents/proofs'],
             // 'acknowledgement' => ['label' => 'Acknowledgement', 'href' => '/dashboard/documents/acknowledgement'],
         ],
