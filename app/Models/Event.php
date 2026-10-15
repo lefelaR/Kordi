@@ -35,7 +35,8 @@ class Event
         $perPage = max(1, $perPage);
         $offset = (max(1, $page) - 1) * $perPage;
         $statement = $this->database->query(
-            'SELECT id, title, company, location, event_date, status, finance, attendants, created_at FROM events ORDER BY created_at DESC, id DESC LIMIT '
+            'SELECT id, title, company, location, event_date, status, finance, attendants, revenue, created_at'
+            . ' FROM events ORDER BY created_at DESC, id DESC LIMIT '
             . $perPage
             . ' OFFSET '
             . $offset
@@ -47,7 +48,7 @@ class Event
     public function find(int $id): ?array
     {
         $statement = $this->database->prepare(
-            'SELECT id, title, company, location, event_date, status, finance, attendants FROM events WHERE id = :id'
+            'SELECT id, title, company, location, event_date, status, finance, attendants, revenue FROM events WHERE id = :id'
         );
         $statement->execute(['id' => $id]);
         $event = $statement->fetch();
@@ -63,10 +64,11 @@ class Event
         string $status,
         string $finance,
         int $attendants,
+        ?string $revenue,
     ): void {
         $statement = $this->database->prepare(
-            'INSERT INTO events (title, company, location, event_date, status, finance, attendants)'
-            . ' VALUES (:title, :company, :location, :event_date, :status, :finance, :attendants)'
+            'INSERT INTO events (title, company, location, event_date, status, finance, attendants, revenue)'
+            . ' VALUES (:title, :company, :location, :event_date, :status, :finance, :attendants, :revenue)'
         );
         $statement->execute([
             'title' => $title,
@@ -76,6 +78,7 @@ class Event
             'status' => $status,
             'finance' => $finance,
             'attendants' => $attendants,
+            'revenue' => $revenue,
         ]);
     }
 
@@ -88,10 +91,11 @@ class Event
         string $status,
         string $finance,
         int $attendants,
+        ?string $revenue,
     ): void {
         $statement = $this->database->prepare(
             'UPDATE events SET title = :title, company = :company, location = :location, event_date = :event_date,'
-            . ' status = :status, finance = :finance, attendants = :attendants WHERE id = :id'
+            . ' status = :status, finance = :finance, attendants = :attendants, revenue = :revenue WHERE id = :id'
         );
         $statement->execute([
             'id' => $id,
@@ -102,6 +106,7 @@ class Event
             'status' => $status,
             'finance' => $finance,
             'attendants' => $attendants,
+            'revenue' => $revenue,
         ]);
     }
 

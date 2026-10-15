@@ -14,6 +14,15 @@ $venueReturnQuery = http_build_query(array_filter([
     'q' => $venueSearch !== '' ? $venueSearch : null,
     'page' => $venuePage > 1 ? (string) $venuePage : null,
 ]));
+$venueMapPoints = [];
+foreach ($venues as $venue) {
+    $venueMapPoints[] = [
+        'name' => (string) ($venue['name'] ?? ''),
+        'location' => (string) ($venue['location'] ?? ''),
+        'latitude' => $venue['latitude'] ?? null,
+        'longitude' => $venue['longitude'] ?? null,
+    ];
+}
 ?>
 <section class="dashboard-page">
     <div class="dashboard-page-bar">
@@ -36,6 +45,7 @@ $venueReturnQuery = http_build_query(array_filter([
             </div>
         </form>
         <div data-venue-results>
+            <div hidden data-venues-map-points><?= htmlspecialchars(json_encode($venueMapPoints, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP), ENT_NOQUOTES, 'UTF-8') ?></div>
             <table class="dashboard-table">
                 <thead>
                     <tr>
@@ -126,6 +136,9 @@ $venueReturnQuery = http_build_query(array_filter([
             <?php endif; ?>
         </div>
     </div>
+    <div class="dashboard-panel dashboard-venues-map-panel">
+        <div class="dashboard-venues-map" data-venues-map role="img" aria-label="Map of venue locations in Cape Town"></div>
+    </div>
     <script>
         (() => {
             const form = document.querySelector('[data-venue-search]');
@@ -167,6 +180,7 @@ $venueReturnQuery = http_build_query(array_filter([
                     }
                     results.innerHTML = nextResults.innerHTML;
                     history.replaceState(null, '', url);
+                    document.dispatchEvent(new Event('venues:results-updated'));
                 } catch (error) {
                     if (currentRequest === requestId) {
                         window.location.assign(url);

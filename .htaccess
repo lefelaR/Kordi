@@ -4,6 +4,9 @@ RewriteEngine On
 
 RewriteRule ^app(?:/|$) - [F,L]
 
+# Laravel API is reverse-proxied by Apache; do not send /api to index.php.
+RewriteRule ^api(?:/|$) - [L]
+
 # Keep existing assets and files directly accessible.
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d

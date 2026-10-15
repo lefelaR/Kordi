@@ -2,21 +2,14 @@
 
 namespace App\Controllers;
 
-use App\Config\Database;
 use App\Models\Auth;
-use App\Models\Company;
-use App\Models\Event;
-use App\Models\Vendor;
-use App\Models\Venue;
+use App\Models\DashboardApi;
 
 class DashboardController
 {
     public function __construct(
         private Auth $auth,
-        private Event $events,
-        private Vendor $vendors,
-        private Company $companies,
-        private Venue $venues,
+        private DashboardApi $dashboardApi,
     ) {
     }
 
@@ -104,7 +97,7 @@ class DashboardController
             return;
         }
 
-        $eventCount = in_array($section, ['overview', 'events'], true) ? $this->events->count() : 0;
+        $eventCount = 0;
         $events = [];
         $eventStatusCounts = [];
         $eventPage = 1;
@@ -113,24 +106,7 @@ class DashboardController
         $eventRangeStart = 0;
         $eventRangeEnd = 0;
 
-        if ($section === 'events') {
-            $perPage = 10;
-            $eventPageCount = max(1, (int) ceil($eventCount / $perPage));
-            $requestedPage = filter_input(INPUT_GET, 'page', FILTER_VALIDATE_INT);
-            $eventPage = is_int($requestedPage) && $requestedPage > 0 ? min($requestedPage, $eventPageCount) : 1;
-            if (isset($_GET['page']) && (!is_int($requestedPage) || $requestedPage !== $eventPage)) {
-                $location = $eventPage === 1 ? '/dashboard/events' : '/dashboard/events?page=' . $eventPage;
-                header('Location: ' . $location);
-                exit;
-            }
-            $events = $eventCount === 0 ? [] : $this->events->page($eventPage, $perPage);
-            $eventStatusCounts = $this->events->statusCounts();
-            $eventPageLinks = $this->pageLinks($eventPage, $eventPageCount);
-            $eventRangeStart = (($eventPage - 1) * $perPage) + 1;
-            $eventRangeEnd = min($eventCount, $eventPage * $perPage);
-        }
-
-        $vendorCount = in_array($section, ['overview', 'vendors'], true) ? $this->vendors->count() : 0;
+        $vendorCount = 0;
         $vendors = [];
         $vendorPage = 1;
         $vendorPageCount = 1;
@@ -138,23 +114,7 @@ class DashboardController
         $vendorRangeStart = 0;
         $vendorRangeEnd = 0;
 
-        if ($section === 'vendors') {
-            $perPage = 10;
-            $vendorPageCount = max(1, (int) ceil($vendorCount / $perPage));
-            $requestedPage = filter_input(INPUT_GET, 'page', FILTER_VALIDATE_INT);
-            $vendorPage = is_int($requestedPage) && $requestedPage > 0 ? min($requestedPage, $vendorPageCount) : 1;
-            if (isset($_GET['page']) && (!is_int($requestedPage) || $requestedPage !== $vendorPage)) {
-                $location = $vendorPage === 1 ? '/dashboard/vendors' : '/dashboard/vendors?page=' . $vendorPage;
-                header('Location: ' . $location);
-                exit;
-            }
-            $vendors = $vendorCount === 0 ? [] : $this->vendors->page($vendorPage, $perPage);
-            $vendorPageLinks = $this->pageLinks($vendorPage, $vendorPageCount);
-            $vendorRangeStart = (($vendorPage - 1) * $perPage) + 1;
-            $vendorRangeEnd = min($vendorCount, $vendorPage * $perPage);
-        }
-
-        $companyCount = $section === 'companies' ? $this->companies->count() : 0;
+        $companyCount = 0;
         $companies = [];
         $companyPage = 1;
         $companyPageCount = 1;
@@ -162,24 +122,8 @@ class DashboardController
         $companyRangeStart = 0;
         $companyRangeEnd = 0;
 
-        if ($section === 'companies') {
-            $perPage = 10;
-            $companyPageCount = max(1, (int) ceil($companyCount / $perPage));
-            $requestedPage = filter_input(INPUT_GET, 'page', FILTER_VALIDATE_INT);
-            $companyPage = is_int($requestedPage) && $requestedPage > 0 ? min($requestedPage, $companyPageCount) : 1;
-            if (isset($_GET['page']) && (!is_int($requestedPage) || $requestedPage !== $companyPage)) {
-                $location = $companyPage === 1 ? '/dashboard/companies' : '/dashboard/companies?page=' . $companyPage;
-                header('Location: ' . $location);
-                exit;
-            }
-            $companies = $companyCount === 0 ? [] : $this->companies->page($companyPage, $perPage);
-            $companyPageLinks = $this->pageLinks($companyPage, $companyPageCount);
-            $companyRangeStart = (($companyPage - 1) * $perPage) + 1;
-            $companyRangeEnd = min($companyCount, $companyPage * $perPage);
-        }
-
         $venueSearch = '';
-        $venueCount = $section === 'overview' ? $this->venues->count() : 0;
+        $venueCount = 0;
         $venues = [];
         $venuePage = 1;
         $venuePageCount = 1;
@@ -187,33 +131,142 @@ class DashboardController
         $venueRangeStart = 0;
         $venueRangeEnd = 0;
 
+        $enquiries = [];
+        $invoiceCompanies = [];
+        $selectedInvoice = null;
+        $revenueTotal = 0.0;
+        $monthRevenueTotal = 0.0;
+        $monthDailyRevenue = [];
+        $eventRevenueChart = [
+            'year' => (int) date('Y'),
+            'events' => [],
+        ];
+        $overviewCalendar = [
+            'year' => (int) date('Y'),
+            'month' => (int) date('n'),
+            'events' => [],
+        ];
+        $overviewMonthValue = date('Y-m');
+
+        if ($section === 'overview') {
+            $requestedMonth = trim((string) ($_GET['month'] ?? ''));
+            if (preg_match('/^(\d{4})-(\d{2})$/', $requestedMonth, $monthParts) === 1) {
+                $overviewYear = (int) $monthParts[1];
+                $overviewMonth = (int) $monthParts[2];
+                if ($overviewYear < 2000 || $overviewYear > 2100 || $overviewMonth < 1 || $overviewMonth > 12) {
+                    $overviewYear = (int) date('Y');
+                    $overviewMonth = (int) date('n');
+                }
+            } else {
+                $overviewYear = (int) date('Y');
+                $overviewMonth = (int) date('n');
+            }
+            $overviewMonthValue = sprintf('%04d-%02d', $overviewYear, $overviewMonth);
+
+            $overview = $this->dashboardApi->overview($overviewYear, $overviewMonth);
+            $eventCount = $overview['event_count'];
+            $vendorCount = $overview['vendor_count'];
+            $venueCount = $overview['venue_count'];
+            $enquiries = $overview['enquiries'];
+            $revenueTotal = $overview['revenue_total'];
+            $monthRevenueTotal = $overview['month_revenue_total'];
+            $monthDailyRevenue = $overview['month_daily_revenue'];
+            $eventRevenueChart = $overview['event_revenue_chart'];
+            $overviewCalendar = $overview['calendar'];
+            $extraScripts = [
+                '/assets/js/chart.umd.min.js',
+                '/assets/js/overview-revenue-chart.js',
+            ];
+        }
+
+        if ($section === 'events') {
+            $requestedPage = filter_input(INPUT_GET, 'page', FILTER_VALIDATE_INT);
+            $requestedPage = is_int($requestedPage) && $requestedPage > 0 ? $requestedPage : 1;
+            $payload = $this->dashboardApi->events($requestedPage);
+            $eventCount = $payload['meta']['total'];
+            $eventPage = $payload['meta']['page'];
+            $eventPageCount = $payload['meta']['last_page'];
+            $events = $payload['data'];
+            $eventStatusCounts = $payload['status_counts'];
+            if (isset($_GET['page']) && (!is_int($requestedPage) || $requestedPage !== $eventPage)) {
+                $location = $eventPage === 1 ? '/dashboard/events' : '/dashboard/events?page=' . $eventPage;
+                header('Location: ' . $location);
+                exit;
+            }
+            $eventPageLinks = $this->pageLinks($eventPage, $eventPageCount);
+            $eventRangeStart = $eventCount === 0 ? 0 : (($eventPage - 1) * $payload['meta']['per_page']) + 1;
+            $eventRangeEnd = min($eventCount, $eventPage * $payload['meta']['per_page']);
+        }
+
+        if ($section === 'vendors') {
+            $requestedPage = filter_input(INPUT_GET, 'page', FILTER_VALIDATE_INT);
+            $requestedPage = is_int($requestedPage) && $requestedPage > 0 ? $requestedPage : 1;
+            $payload = $this->dashboardApi->vendors($requestedPage);
+            $vendorCount = $payload['meta']['total'];
+            $vendorPage = $payload['meta']['page'];
+            $vendorPageCount = $payload['meta']['last_page'];
+            $vendors = $payload['data'];
+            if (isset($_GET['page']) && (!is_int($requestedPage) || $requestedPage !== $vendorPage)) {
+                $location = $vendorPage === 1 ? '/dashboard/vendors' : '/dashboard/vendors?page=' . $vendorPage;
+                header('Location: ' . $location);
+                exit;
+            }
+            $vendorPageLinks = $this->pageLinks($vendorPage, $vendorPageCount);
+            $vendorRangeStart = $vendorCount === 0 ? 0 : (($vendorPage - 1) * $payload['meta']['per_page']) + 1;
+            $vendorRangeEnd = min($vendorCount, $vendorPage * $payload['meta']['per_page']);
+        }
+
+        if ($section === 'companies') {
+            $requestedPage = filter_input(INPUT_GET, 'page', FILTER_VALIDATE_INT);
+            $requestedPage = is_int($requestedPage) && $requestedPage > 0 ? $requestedPage : 1;
+            $payload = $this->dashboardApi->companies($requestedPage);
+            $companyCount = $payload['meta']['total'];
+            $companyPage = $payload['meta']['page'];
+            $companyPageCount = $payload['meta']['last_page'];
+            $companies = $payload['data'];
+            if (isset($_GET['page']) && (!is_int($requestedPage) || $requestedPage !== $companyPage)) {
+                $location = $companyPage === 1 ? '/dashboard/companies' : '/dashboard/companies?page=' . $companyPage;
+                header('Location: ' . $location);
+                exit;
+            }
+            $companyPageLinks = $this->pageLinks($companyPage, $companyPageCount);
+            $companyRangeStart = $companyCount === 0 ? 0 : (($companyPage - 1) * $payload['meta']['per_page']) + 1;
+            $companyRangeEnd = min($companyCount, $companyPage * $payload['meta']['per_page']);
+        }
+
         if ($section === 'venues') {
             $venueSearch = trim((string) ($_GET['q'] ?? ''));
             if (strlen($venueSearch) > 120) {
                 $venueSearch = substr($venueSearch, 0, 120);
             }
-            $searchTerm = $venueSearch === '' ? null : $venueSearch;
-            $venueCount = $this->venues->count($searchTerm);
-            $perPage = 10;
-            $venuePageCount = max(1, (int) ceil($venueCount / $perPage));
             $requestedPage = filter_input(INPUT_GET, 'page', FILTER_VALIDATE_INT);
-            $venuePage = is_int($requestedPage) && $requestedPage > 0 ? min($requestedPage, $venuePageCount) : 1;
+            $requestedPage = is_int($requestedPage) && $requestedPage > 0 ? $requestedPage : 1;
+            $payload = $this->dashboardApi->venues($requestedPage, $venueSearch);
+            $venueSearch = $payload['search'];
+            $venueCount = $payload['meta']['total'];
+            $venuePage = $payload['meta']['page'];
+            $venuePageCount = $payload['meta']['last_page'];
+            $venues = $payload['data'];
             if (isset($_GET['page']) && (!is_int($requestedPage) || $requestedPage !== $venuePage)) {
                 header('Location: ' . $this->venuesListLocation($venuePage, $venueSearch));
                 exit;
             }
-            $venues = $venueCount === 0 ? [] : $this->venues->page($venuePage, $perPage, $searchTerm);
             $venuePageLinks = $this->pageLinks($venuePage, $venuePageCount);
-            $venueRangeStart = (($venuePage - 1) * $perPage) + 1;
-            $venueRangeEnd = min($venueCount, $venuePage * $perPage);
+            $venueRangeStart = $venueCount === 0 ? 0 : (($venuePage - 1) * $payload['meta']['per_page']) + 1;
+            $venueRangeEnd = min($venueCount, $venuePage * $payload['meta']['per_page']);
+            $extraStylesheets = ['/assets/leaflet/leaflet.css'];
+            $extraScripts = [
+                '/assets/leaflet/leaflet.js',
+                '/assets/js/venues-list-map.js',
+            ];
         }
 
-        $enquiries = in_array($section, ['overview', 'enquiries'], true) ? $this->enquiries() : [];
-        $invoiceCompanies = [];
-        $selectedInvoice = null;
+        if ($section === 'enquiries') {
+            $enquiries = $this->dashboardApi->enquiries();
+        }
 
         if ($section === 'documents' && $subsection === 'invoices') {
-            foreach ($this->companies->all() as $company) {
+            foreach ($this->dashboardApi->companiesAll() as $company) {
                 $invoiceCompanies[] = [
                     'id' => (int) $company['id'],
                     'name' => (string) $company['name'],
@@ -295,14 +348,5 @@ class DashboardController
         }
 
         return '/dashboard/venues?' . http_build_query($query);
-    }
-
-    private function enquiries(): array
-    {
-        $statement = Database::connection()->query(
-            'SELECT id, name, email, event_type, event_date, message, created_at FROM enquiries ORDER BY created_at DESC, id DESC'
-        );
-
-        return $statement->fetchAll();
     }
 }
