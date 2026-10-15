@@ -29,19 +29,31 @@ class OverviewController extends Controller
 
         $chartEvents = [];
         $totalRevenue = 0.0;
+        $monthRevenueTotal = 0.0;
+        $daysInMonth = (int) date('t', mktime(0, 0, 0, $month, 1, $year));
+        $dailyRevenue = array_fill(1, $daysInMonth, 0.0);
 
         foreach ($revenueEvents as $event) {
             $revenue = (float) $event->revenue;
             $totalRevenue += $revenue;
+            $eventMonth = (int) $event->event_date->format('n');
             $chartEvents[] = [
                 'id' => (int) $event->id,
                 'title' => (string) $event->title,
                 'client' => trim((string) ($event->company ?? '')) !== ''
                     ? (string) $event->company
                     : 'No client',
-                'month' => (int) $event->event_date->format('n'),
+                'month' => $eventMonth,
                 'revenue' => round($revenue, 2),
             ];
+
+            if ($eventMonth === $month) {
+                $monthRevenueTotal += $revenue;
+                $day = (int) $event->event_date->format('j');
+                if (isset($dailyRevenue[$day])) {
+                    $dailyRevenue[$day] += $revenue;
+                }
+            }
         }
 
         $calendarEvents = Event::query()
@@ -75,6 +87,11 @@ class OverviewController extends Controller
                 ->orderByDesc('id')
                 ->get(),
             'revenue_total' => round($totalRevenue, 2),
+            'month_revenue_total' => round($monthRevenueTotal, 2),
+            'month_daily_revenue' => array_map(
+                static fn (float $amount): float => round($amount, 2),
+                array_values($dailyRevenue)
+            ),
             'event_revenue_chart' => [
                 'year' => $year,
                 'events' => $chartEvents,

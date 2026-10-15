@@ -36,14 +36,9 @@ $chartYear = (int) ($eventRevenueChart['year'] ?? date('Y'));
 $chartEvents = $eventRevenueChart['events'] ?? [];
 $hasRevenuePoints = $chartEvents !== [];
 $revenueLabel = 'R ' . number_format((float) $revenueTotal, 2, '.', ',');
-$monthlyTotals = array_fill(1, 12, 0.0);
-foreach ($chartEvents as $event) {
-    $month = (int) ($event['month'] ?? 0);
-    if ($month >= 1 && $month <= 12) {
-        $monthlyTotals[$month] += (float) ($event['revenue'] ?? 0);
-    }
-}
-$monthlyTotalsList = array_values($monthlyTotals);
+$monthRevenueLabel = 'R ' . number_format((float) ($monthRevenueTotal ?? 0), 2, '.', ',');
+$hasMonthRevenue = (float) ($monthRevenueTotal ?? 0) > 0;
+$dailyRevenueList = array_values(array_map('floatval', $monthDailyRevenue ?? []));
 
 $calendarYear = (int) ($overviewCalendar['year'] ?? date('Y'));
 $calendarMonth = (int) ($overviewCalendar['month'] ?? date('n'));
@@ -156,18 +151,18 @@ $metrics = [
             <header class="dashboard-chart-header">
                 <div>
                     <h2>Total revenue</h2>
-                    <p><?= (int) $chartYear ?> year to date</p>
+                    <p><?= htmlspecialchars($calendarTitleLabel, ENT_QUOTES, 'UTF-8') ?></p>
                 </div>
             </header>
-            <p class="dashboard-revenue-total"><?= htmlspecialchars($revenueLabel, ENT_QUOTES, 'UTF-8') ?></p>
-            <?php if (!$hasRevenuePoints): ?>
-                <p class="dashboard-empty dashboard-chart-empty">No revenue recorded yet.</p>
+            <p class="dashboard-revenue-total"><?= htmlspecialchars($monthRevenueLabel, ENT_QUOTES, 'UTF-8') ?></p>
+            <?php if (!$hasMonthRevenue): ?>
+                <p class="dashboard-empty dashboard-chart-empty">No revenue recorded for this month.</p>
             <?php else: ?>
                 <div class="dashboard-chart-canvas-wrap dashboard-chart-canvas-wrap-side">
                     <canvas
                         data-overview-total-revenue-chart
-                        aria-label="Total revenue by month for <?= (int) $chartYear ?>"
-                        data-monthly-totals="<?= htmlspecialchars(json_encode($monthlyTotalsList, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP), ENT_QUOTES, 'UTF-8') ?>"
+                        aria-label="Total revenue by day for <?= htmlspecialchars($calendarTitleLabel, ENT_QUOTES, 'UTF-8') ?>"
+                        data-daily-totals="<?= htmlspecialchars(json_encode($dailyRevenueList, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP), ENT_QUOTES, 'UTF-8') ?>"
                     ></canvas>
                 </div>
             <?php endif; ?>

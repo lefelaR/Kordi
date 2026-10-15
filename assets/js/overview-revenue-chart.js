@@ -172,18 +172,20 @@
         return;
     }
 
-    const monthlyTotals = parseJsonAttr(totalCanvas, 'data-monthly-totals');
-    if (!Array.isArray(monthlyTotals) || monthlyTotals.length === 0) {
+    const dailyTotals = parseJsonAttr(totalCanvas, 'data-daily-totals');
+    if (!Array.isArray(dailyTotals) || dailyTotals.length === 0) {
         return;
     }
+
+    const dayLabels = dailyTotals.map((_, index) => String(index + 1));
 
     new Chart(totalCanvas, {
         type: 'line',
         data: {
-            labels: monthLabels,
+            labels: dayLabels,
             datasets: [{
                 label: 'Total revenue',
-                data: monthlyTotals.map((value) => Number(value) || 0),
+                data: dailyTotals.map((value) => Number(value) || 0),
                 borderColor: primary,
                 backgroundColor: 'transparent',
                 borderWidth: 2,
@@ -202,6 +204,9 @@
                 },
                 tooltip: {
                     callbacks: {
+                        title(items) {
+                            return 'Day ' + (items[0]?.label || '');
+                        },
                         label(item) {
                             return formatMoney(item.parsed.y || 0);
                         },
@@ -214,7 +219,7 @@
                         color: muted,
                         maxRotation: 0,
                         autoSkip: true,
-                        maxTicksLimit: 6,
+                        maxTicksLimit: 8,
                     },
                     grid: {
                         display: false,
