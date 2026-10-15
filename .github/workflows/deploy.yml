@@ -51,6 +51,17 @@ jobs:
       - name: Install production dependencies
         run: composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
 
+      - name: Setup PHP for Laravel API
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          tools: composer
+          coverage: none
+
+      - name: Install Laravel API production dependencies
+        working-directory: api
+        run: composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
+
       - name: Deploy with rsync over SSH
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
