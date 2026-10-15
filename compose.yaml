@@ -6,12 +6,44 @@ services:
       - "${PORT:-8081}:80"
     volumes:
       - .:/var/www/html
+      - ./docker/apache-api-proxy.conf:/etc/apache2/conf-available/api-proxy.conf:ro
     environment:
       DB_HOST: ${DB_HOST:-db}
       DB_PORT: ${DB_PORT:-3306}
       DB_NAME: ${DB_NAME:-kordi}
       DB_USER: ${DB_USER:-kordi}
       DB_PASSWORD: ${DB_PASSWORD:-kordi-local-password}
+      APP_LOGIN_EMAIL: ${APP_LOGIN_EMAIL:-admin@kordicraftcreations.co.za}
+      APP_LOGIN_PASSWORD: ${APP_LOGIN_PASSWORD:-kordicraft-demo}
+      API_BASE_URL: ${API_BASE_URL:-http://api:8000/api}
+    depends_on:
+      db:
+        condition: service_healthy
+      api:
+        condition: service_started
+
+  api:
+    build:
+      context: ./api
+    volumes:
+      - ./api:/var/www/html
+    environment:
+      APP_NAME: KordicraftAPI
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_URL: ${APP_URL:-http://localhost:8081/api}
+      APP_KEY: ${API_APP_KEY:-}
+      DB_CONNECTION: mysql
+      DB_HOST: ${DB_HOST:-db}
+      DB_PORT: ${DB_PORT:-3306}
+      DB_DATABASE: ${DB_NAME:-kordi}
+      DB_USERNAME: ${DB_USER:-kordi}
+      DB_PASSWORD: ${DB_PASSWORD:-kordi-local-password}
+      APP_LOGIN_EMAIL: ${APP_LOGIN_EMAIL:-admin@kordicraftcreations.co.za}
+      APP_LOGIN_PASSWORD: ${APP_LOGIN_PASSWORD:-kordicraft-demo}
+      SESSION_DRIVER: file
+      CACHE_STORE: file
+      QUEUE_CONNECTION: sync
     depends_on:
       db:
         condition: service_healthy

@@ -1,10 +1,29 @@
 # Composer dependencies
 /vendor/
+/api/vendor/
+/api/node_modules/
 
 # Local environment and secrets
 .env
 .env.*
 !.env.example
+/api/.env
+/api/.env.*
+!/api/.env.example
+
+# Laravel
+/api/storage/*.key
+/api/storage/logs/*
+!/api/storage/logs/.gitignore
+/api/storage/framework/cache/*
+!/api/storage/framework/cache/.gitignore
+/api/storage/framework/sessions/*
+!/api/storage/framework/sessions/.gitignore
+/api/storage/framework/views/*
+!/api/storage/framework/views/.gitignore
+/api/bootstrap/cache/*.php
+!/api/bootstrap/cache/.gitignore
+/api/database/*.sqlite
 
 # macOS metadata
 .DS_Store

@@ -6,6 +6,8 @@ kordi_register_error_handlers();
 
 require __DIR__ . '/app/Config/Database.php';
 require __DIR__ . '/app/Models/EnquiryMailer.php';
+require __DIR__ . '/app/Models/ApiClient.php';
+require __DIR__ . '/app/Models/DashboardApi.php';
 require __DIR__ . '/app/Models/Auth.php';
 require __DIR__ . '/app/Models/Event.php';
 require __DIR__ . '/app/Models/Vendor.php';
@@ -19,8 +21,12 @@ require __DIR__ . '/app/Controllers/VendorController.php';
 require __DIR__ . '/app/Controllers/CompanyController.php';
 require __DIR__ . '/app/Controllers/VenueController.php';
 
+$apiBaseUrl = $_ENV['API_BASE_URL'] ?? getenv('API_BASE_URL') ?: 'http://api:8000/api';
+$apiClient = new App\Models\ApiClient($apiBaseUrl);
+$auth = new App\Models\Auth($apiClient);
+$dashboardApi = new App\Models\DashboardApi($apiClient->withToken($auth->apiToken()));
+
 $requestPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
-$auth = new App\Models\Auth();
 
 if ($requestPath === '/login') {
     (new App\Controllers\AuthController($auth))->login();
@@ -77,19 +83,9 @@ if ($requestPath === '/login') {
         $eventController->delete($eventId);
     }
 } elseif (preg_match('#^/dashboard/documents/(proposals|invoices|proofs|acknowledgement)$#', $requestPath, $matches) === 1) {
-    $database = App\Config\Database::connection();
-    $events = new App\Models\Event($database);
-    $vendors = new App\Models\Vendor($database);
-    $companies = new App\Models\Company($database);
-    $venues = new App\Models\Venue($database);
-    (new App\Controllers\DashboardController($auth, $events, $vendors, $companies, $venues))->show('documents', $matches[1]);
+    (new App\Controllers\DashboardController($auth, $dashboardApi))->show('documents', $matches[1]);
 } elseif (preg_match('#^/dashboard(?:/([a-z]+))?$#', $requestPath, $matches) === 1) {
-    $database = App\Config\Database::connection();
-    $events = new App\Models\Event($database);
-    $vendors = new App\Models\Vendor($database);
-    $companies = new App\Models\Company($database);
-    $venues = new App\Models\Venue($database);
-    (new App\Controllers\DashboardController($auth, $events, $vendors, $companies, $venues))->show($matches[1] ?? 'overview');
+    (new App\Controllers\DashboardController($auth, $dashboardApi))->show($matches[1] ?? 'overview');
 } else {
     (new App\Controllers\HomeController(new App\Models\EnquiryMailer()))->handle();
 }

@@ -11,9 +11,9 @@
             <thead>
                 <tr>
                     <th>Name</th>
-                    <th>Contact</th>
-                    <th>Email</th>
-                    <th>Phone</th>
+                    <th>Location</th>
+                    <th>Price</th>
+                    <th>Capacity</th>
                     <th>Action</th>
                 </tr>
             </thead>
@@ -26,9 +26,9 @@
                     <?php foreach ($vendors as $vendor): ?>
                         <tr>
                             <td><?= htmlspecialchars($vendor['name'], ENT_QUOTES, 'UTF-8') ?></td>
-                            <td><?= htmlspecialchars((string) ($vendor['contact'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
-                            <td><?= htmlspecialchars((string) ($vendor['email'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
-                            <td><?= htmlspecialchars((string) ($vendor['phone'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
+                            <td><?= htmlspecialchars((string) ($vendor['location'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
+                            <td><?= htmlspecialchars($vendor['price'] !== null && $vendor['price'] !== '' ? 'R ' . number_format((float) $vendor['price'], 2) : '', ENT_QUOTES, 'UTF-8') ?></td>
+                            <td><?= htmlspecialchars((string) ($vendor['capacity'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
                             <td>
                                 <div class="dashboard-actions">
                                     <a class="dashboard-button dashboard-button-secondary dashboard-icon-button" href="/vendors/<?= (int) $vendor['id'] ?>/edit?page=<?= (int) $vendorPage ?>" aria-label="Edit <?= htmlspecialchars($vendor['name'], ENT_QUOTES, 'UTF-8') ?>">
