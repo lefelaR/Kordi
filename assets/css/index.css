@@ -5,6 +5,15 @@
 	scroll-behavior: smooth;
 }
 
+:root {
+	--card-gradient: linear-gradient(
+		165deg,
+		oklch(1 0 0) 0%,
+		oklch(0.99 0.001 286) 52%,
+		oklch(0.967 0.001 286.375) 100%
+	);
+}
+
 body {
 	font-family: 'Montserrat', sans-serif;
 	color: #111;
@@ -268,7 +277,7 @@ section {
 	overflow: hidden;
 	border: 1px solid #eee;
 	border-radius: 18px;
-	background: #fff;
+	background: var(--card-gradient);
 	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1)
 }
 
@@ -428,7 +437,7 @@ footer h2 {
 .auth-card {
 	width: min(100%, 430px);
 	padding: 48px;
-	background: #fff;
+	background: var(--card-gradient);
 	box-shadow: 0 20px 50px rgba(0, 0, 0, 0.08);
 }
 
@@ -544,7 +553,7 @@ footer h2 {
 
 .code-card {
 	overflow: hidden;
-	background: var(--card);
+	background: var(--card-gradient);
 	color: var(--card-foreground);
 	border: 1px solid var(--border);
 	border-radius: var(--radius);
@@ -619,6 +628,12 @@ footer h2 {
 	--sidebar-border: oklch(0.92 0.004 286.32);
 	--card: oklch(1 0 0);
 	--card-foreground: oklch(0.141 0.005 285.823);
+	--card-gradient: linear-gradient(
+		165deg,
+		oklch(1 0 0) 0%,
+		oklch(0.99 0.001 286) 52%,
+		oklch(0.967 0.001 286.375) 100%
+	);
 	--muted: oklch(0.967 0.001 286.375);
 	--destructive: oklch(0.577 0.245 27.325);
 	--status-planned: oklch(0.95 0.04 85);
@@ -1103,7 +1118,7 @@ nav.dashboard-breadcrumb .dashboard-breadcrumb-separator svg {
 	flex-direction: column;
 	gap: 12px;
 	padding: 16px;
-	background: var(--card);
+	background: var(--card-gradient);
 	border-radius: var(--radius);
 }
 
@@ -1207,7 +1222,7 @@ nav.dashboard-breadcrumb .dashboard-breadcrumb-separator svg {
 	padding: 16px;
 	border: 1px solid var(--border);
 	border-radius: var(--radius);
-	background: var(--card);
+	background: var(--card-gradient);
 }
 
 .dashboard-form-company {
@@ -1273,7 +1288,7 @@ nav.dashboard-breadcrumb .dashboard-breadcrumb-separator svg {
 	flex-direction: column;
 	gap: 8px;
 	padding: 20px;
-	background: var(--card);
+	background: var(--card-gradient);
 	color: var(--card-foreground);
 	border: 1px solid var(--border);
 	border-radius: var(--radius);
@@ -1566,7 +1581,7 @@ nav.dashboard-breadcrumb .dashboard-breadcrumb-separator svg {
 .dashboard-section-card {
 	display: block;
 	padding: 20px;
-	background: var(--card);
+	background: var(--card-gradient);
 	color: var(--card-foreground);
 	border: 1px solid var(--border);
 	border-radius: var(--radius);
@@ -1590,7 +1605,7 @@ nav.dashboard-breadcrumb .dashboard-breadcrumb-separator svg {
 
 .dashboard-panel {
 	margin-top: 24px;
-	background: var(--card);
+	background: var(--card-gradient);
 	border: 1px solid var(--border);
 	border-radius: var(--radius);
 	overflow: auto;
