@@ -29,18 +29,21 @@
         const events = parseJsonAttr(eventCanvas, 'data-chart-events');
         if (Array.isArray(events) && events.length > 0) {
             const monthCounts = Array.from({ length: 12 }, () => 0);
+            const monthTotals = Array.from({ length: 12 }, () => 0);
             const points = events.map((event) => {
                 const month = Math.max(1, Math.min(12, Number(event.month) || 1));
                 const index = month - 1;
+                const revenue = Number(event.revenue) || 0;
                 const offset = monthCounts[index];
                 monthCounts[index] += 1;
+                monthTotals[index] += revenue;
                 const jitter = offset === 0
                     ? 0
                     : (offset % 2 === 0 ? 1 : -1) * Math.ceil(offset / 2) * 0.18;
 
                 return {
                     x: month + jitter,
-                    y: Number(event.revenue) || 0,
+                    y: revenue,
                     client: typeof event.client === 'string' && event.client.trim() !== ''
                         ? event.client.trim()
                         : 'No client',
@@ -49,11 +52,16 @@
                 };
             });
 
+            const shadedLine = monthTotals.map((total, index) => ({
+                x: index + 1,
+                y: total,
+            }));
+
             const clientLabelPlugin = {
                 id: 'clientRevenueLabels',
                 afterDatasetsDraw(chart) {
                     const { ctx } = chart;
-                    const meta = chart.getDatasetMeta(0);
+                    const meta = chart.getDatasetMeta(1);
                     if (!meta || !meta.data) {
                         return;
                     }
@@ -77,17 +85,33 @@
             };
 
             new Chart(eventCanvas, {
-                type: 'scatter',
                 data: {
-                    datasets: [{
-                        label: 'Event revenue',
-                        data: points,
-                        backgroundColor: chart1,
-                        borderColor: primary,
-                        borderWidth: 1,
-                        pointRadius: 6,
-                        pointHoverRadius: 8,
-                    }],
+                    datasets: [
+                        {
+                            type: 'line',
+                            label: 'Monthly revenue',
+                            data: shadedLine,
+                            borderColor: primary,
+                            backgroundColor: 'oklch(0.21 0.006 285.885 / 0.12)',
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            pointHoverRadius: 0,
+                            fill: 'origin',
+                            tension: 0.35,
+                            order: 2,
+                        },
+                        {
+                            type: 'scatter',
+                            label: 'Event revenue',
+                            data: points,
+                            backgroundColor: chart1,
+                            borderColor: primary,
+                            borderWidth: 1,
+                            pointRadius: 6,
+                            pointHoverRadius: 8,
+                            order: 1,
+                        },
+                    ],
                 },
                 options: {
                     responsive: true,
@@ -103,6 +127,9 @@
                             display: false,
                         },
                         tooltip: {
+                            filter(item) {
+                                return item.datasetIndex === 1;
+                            },
                             callbacks: {
                                 title(items) {
                                     const point = items[0]?.raw;
@@ -121,6 +148,7 @@
                     },
                     scales: {
                         x: {
+                            type: 'linear',
                             min: 0.5,
                             max: 12.5,
                             ticks: {
@@ -172,20 +200,18 @@
         return;
     }
 
-    const dailyTotals = parseJsonAttr(totalCanvas, 'data-daily-totals');
-    if (!Array.isArray(dailyTotals) || dailyTotals.length === 0) {
+    const monthlyTotals = parseJsonAttr(totalCanvas, 'data-monthly-totals');
+    if (!Array.isArray(monthlyTotals) || monthlyTotals.length === 0) {
         return;
     }
-
-    const dayLabels = dailyTotals.map((_, index) => String(index + 1));
 
     new Chart(totalCanvas, {
         type: 'line',
         data: {
-            labels: dayLabels,
+            labels: monthLabels,
             datasets: [{
                 label: 'Total revenue',
-                data: dailyTotals.map((value) => Number(value) || 0),
+                data: monthlyTotals.map((value) => Number(value) || 0),
                 borderColor: primary,
                 backgroundColor: 'transparent',
                 borderWidth: 2,
@@ -204,9 +230,6 @@
                 },
                 tooltip: {
                     callbacks: {
-                        title(items) {
-                            return 'Day ' + (items[0]?.label || '');
-                        },
                         label(item) {
                             return formatMoney(item.parsed.y || 0);
                         },
@@ -219,7 +242,7 @@
                         color: muted,
                         maxRotation: 0,
                         autoSkip: true,
-                        maxTicksLimit: 8,
+                        maxTicksLimit: 6,
                     },
                     grid: {
                         display: false,
