@@ -4,12 +4,14 @@ namespace App\Controllers;
 
 use App\Models\Auth;
 use App\Models\DashboardApi;
+use App\Models\Invoice;
 
 class DashboardController
 {
     public function __construct(
         private Auth $auth,
         private DashboardApi $dashboardApi,
+        private Invoice $invoices,
     ) {
     }
 
@@ -267,11 +269,28 @@ class DashboardController
 
         if ($section === 'documents' && $subsection === 'invoices') {
             foreach ($this->dashboardApi->companiesAll() as $company) {
+                $companyId = (int) $company['id'];
+                $companyInvoices = [];
+                foreach ($this->invoices->forCompany($companyId) as $invoice) {
+                    $invoiceId = (int) $invoice['id'];
+                    $companyInvoices[] = [
+                        'id' => $invoiceId,
+                        'title' => (string) $invoice['title'],
+                        'file' => '/invoices/' . $invoiceId . '/preview',
+                    ];
+                }
                 $invoiceCompanies[] = [
-                    'id' => (int) $company['id'],
+                    'id' => $companyId,
                     'name' => (string) $company['name'],
-                    'invoices' => [],
+                    'invoices' => $companyInvoices,
                 ];
+            }
+
+            foreach ($invoiceCompanies as $company) {
+                if ($company['invoices'] !== []) {
+                    $selectedInvoice = $company['invoices'][0];
+                    break;
+                }
             }
         }
 
