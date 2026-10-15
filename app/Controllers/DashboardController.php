@@ -134,6 +134,11 @@ class DashboardController
         $enquiries = [];
         $invoiceCompanies = [];
         $selectedInvoice = null;
+        $revenueTotal = 0.0;
+        $eventRevenueChart = [
+            'year' => (int) date('Y'),
+            'events' => [],
+        ];
 
         if ($section === 'overview') {
             $overview = $this->dashboardApi->overview();
@@ -141,6 +146,12 @@ class DashboardController
             $vendorCount = $overview['vendor_count'];
             $venueCount = $overview['venue_count'];
             $enquiries = $overview['enquiries'];
+            $revenueTotal = $overview['revenue_total'];
+            $eventRevenueChart = $overview['event_revenue_chart'];
+            $extraScripts = [
+                '/assets/js/chart.umd.min.js',
+                '/assets/js/overview-revenue-chart.js',
+            ];
         }
 
         if ($section === 'events') {

@@ -31,13 +31,28 @@ $sections = [
         'summary' => 'No contacts yet.',
     ],
 ];
+
+$chartYear = (int) ($eventRevenueChart['year'] ?? date('Y'));
+$chartEvents = $eventRevenueChart['events'] ?? [];
+$hasRevenuePoints = $chartEvents !== [];
+$revenueLabel = 'R ' . number_format((float) $revenueTotal, 2, '.', ',');
+$monthlyTotals = array_fill(1, 12, 0.0);
+foreach ($chartEvents as $event) {
+    $month = (int) ($event['month'] ?? 0);
+    if ($month >= 1 && $month <= 12) {
+        $monthlyTotals[$month] += (float) ($event['revenue'] ?? 0);
+    }
+}
+$monthlyTotalsList = array_values($monthlyTotals);
 ?>
 <?php
 $metrics = [
     [
         'label' => 'Revenue',
-        'value' => 'R 0.00',
-        'meta' => 'No revenue recorded yet.',
+        'value' => $revenueLabel,
+        'meta' => $hasRevenuePoints
+            ? 'From events with revenue in ' . $chartYear . '.'
+            : 'No revenue recorded yet.',
     ],
     [
         'label' => 'Expenses',
@@ -64,6 +79,47 @@ $metrics = [
                 <p class="dashboard-metric-meta"><?= htmlspecialchars($metric['meta'], ENT_QUOTES, 'UTF-8') ?></p>
             </article>
         <?php endforeach; ?>
+    </div>
+    <div class="dashboard-revenue-layout">
+        <div class="dashboard-panel dashboard-chart-panel dashboard-revenue-main">
+            <header class="dashboard-chart-header">
+                <div>
+                    <h2>Event revenue</h2>
+                    <p>Monthly revenue for <?= (int) $chartYear ?>, with client names on each event.</p>
+                </div>
+            </header>
+            <?php if (!$hasRevenuePoints): ?>
+                <p class="dashboard-empty dashboard-chart-empty">No event revenue for this year yet. Add revenue on an event to see it here.</p>
+            <?php else: ?>
+                <div class="dashboard-chart-canvas-wrap">
+                    <canvas
+                        data-overview-revenue-chart
+                        aria-label="Event revenue by month for <?= (int) $chartYear ?>"
+                        data-chart-events="<?= htmlspecialchars(json_encode($chartEvents, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP), ENT_QUOTES, 'UTF-8') ?>"
+                    ></canvas>
+                </div>
+            <?php endif; ?>
+        </div>
+        <div class="dashboard-panel dashboard-chart-panel dashboard-revenue-side">
+            <header class="dashboard-chart-header">
+                <div>
+                    <h2>Total revenue</h2>
+                    <p><?= (int) $chartYear ?> year to date</p>
+                </div>
+            </header>
+            <p class="dashboard-revenue-total"><?= htmlspecialchars($revenueLabel, ENT_QUOTES, 'UTF-8') ?></p>
+            <?php if (!$hasRevenuePoints): ?>
+                <p class="dashboard-empty dashboard-chart-empty">No revenue recorded yet.</p>
+            <?php else: ?>
+                <div class="dashboard-chart-canvas-wrap dashboard-chart-canvas-wrap-side">
+                    <canvas
+                        data-overview-total-revenue-chart
+                        aria-label="Total revenue by month for <?= (int) $chartYear ?>"
+                        data-monthly-totals="<?= htmlspecialchars(json_encode($monthlyTotalsList, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP), ENT_QUOTES, 'UTF-8') ?>"
+                    ></canvas>
+                </div>
+            <?php endif; ?>
+        </div>
     </div>
     <div class="dashboard-section-grid">
         <?php foreach ($sections as $section): ?>

@@ -30,6 +30,7 @@ class EventController
         $status = 'planned';
         $finance = 'quotes';
         $attendants = '0';
+        $revenue = '';
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $input = $this->readEventInput();
@@ -41,6 +42,7 @@ class EventController
             $status = $input['status'];
             $finance = $input['finance'];
             $attendants = $input['attendants'];
+            $revenue = $input['revenue'];
 
             if ($error === '') {
                 $this->events->create(
@@ -50,7 +52,8 @@ class EventController
                     $input['storedDate'],
                     $status,
                     $finance,
-                    $input['attendantCount']
+                    $input['attendantCount'],
+                    $input['storedRevenue']
                 );
                 header('Location: ' . $this->eventsLocation());
                 exit;
@@ -96,6 +99,7 @@ class EventController
         $status = (string) $event['status'];
         $finance = (string) $event['finance'];
         $attendants = (string) $event['attendants'];
+        $revenue = $event['revenue'] === null ? '' : (string) $event['revenue'];
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $input = $this->readEventInput();
@@ -107,6 +111,7 @@ class EventController
             $status = $input['status'];
             $finance = $input['finance'];
             $attendants = $input['attendants'];
+            $revenue = $input['revenue'];
 
             if ($error === '') {
                 $this->events->update(
@@ -117,7 +122,8 @@ class EventController
                     $input['storedDate'],
                     $status,
                     $finance,
-                    $input['attendantCount']
+                    $input['attendantCount'],
+                    $input['storedRevenue']
                 );
                 header('Location: ' . $this->eventsLocation());
                 exit;
@@ -228,9 +234,11 @@ class EventController
         $status = $_POST['status'] ?? '';
         $finance = $_POST['finance'] ?? '';
         $attendants = trim($_POST['attendants'] ?? '');
+        $revenue = trim($_POST['revenue'] ?? '');
         $storedCompany = null;
         $storedLocation = null;
         $storedDate = null;
+        $storedRevenue = null;
         $attendantCount = 0;
         $error = '';
 
@@ -265,6 +273,14 @@ class EventController
             $storedLocation = $location === '' ? null : $location;
         }
 
+        if ($error === '' && $revenue !== '') {
+            if (!preg_match('/^\d+(\.\d{1,2})?$/', $revenue)) {
+                $error = 'Enter a valid revenue with up to two decimal places.';
+            } else {
+                $storedRevenue = $revenue;
+            }
+        }
+
         return [
             'error' => $error,
             'title' => $title,
@@ -278,6 +294,8 @@ class EventController
             'finance' => $finance,
             'attendants' => $attendants,
             'attendantCount' => $attendantCount,
+            'revenue' => $revenue,
+            'storedRevenue' => $storedRevenue,
         ];
     }
 }

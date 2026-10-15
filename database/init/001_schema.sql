@@ -47,5 +47,6 @@ CREATE TABLE IF NOT EXISTS events (
     status VARCHAR(40) NOT NULL DEFAULT 'planned',
     finance VARCHAR(40) NOT NULL DEFAULT 'quotes',
     attendants INT UNSIGNED NOT NULL DEFAULT 0,
+    revenue DECIMAL(12, 2) NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

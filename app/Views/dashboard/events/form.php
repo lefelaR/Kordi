@@ -29,6 +29,10 @@
             <input type="number" name="attendants" min="0" max="1000000" required value="<?= htmlspecialchars((string) $attendants, ENT_QUOTES, 'UTF-8') ?>">
         </label>
         <label>
+            Revenue
+            <input type="text" name="revenue" inputmode="decimal" maxlength="15" value="<?= htmlspecialchars((string) ($revenue ?? ''), ENT_QUOTES, 'UTF-8') ?>">
+        </label>
+        <label>
             Status
             <select name="status">
                 <?php foreach (['planned', 'confirmed', 'completed'] as $option): ?>

@@ -9,17 +9,45 @@ class DashboardApi
     }
 
     /**
-     * @return array{event_count: int, vendor_count: int, venue_count: int, enquiries: list<array<string, mixed>>}
+     * @return array{
+     *     event_count: int,
+     *     vendor_count: int,
+     *     venue_count: int,
+     *     enquiries: list<array<string, mixed>>,
+     *     revenue_total: float,
+     *     event_revenue_chart: array{year: int, events: list<array{id: int, title: string, client: string, month: int, revenue: float}>}
+     * }
      */
     public function overview(): array
     {
         $response = $this->client->get('/overview');
+        $chart = is_array($response['event_revenue_chart'] ?? null)
+            ? $response['event_revenue_chart']
+            : [];
+        $chartEvents = [];
+        foreach (($chart['events'] ?? []) as $event) {
+            if (!is_array($event)) {
+                continue;
+            }
+            $chartEvents[] = [
+                'id' => (int) ($event['id'] ?? 0),
+                'title' => (string) ($event['title'] ?? ''),
+                'client' => (string) ($event['client'] ?? 'No client'),
+                'month' => max(1, min(12, (int) ($event['month'] ?? 1))),
+                'revenue' => (float) ($event['revenue'] ?? 0),
+            ];
+        }
 
         return [
             'event_count' => (int) ($response['event_count'] ?? 0),
             'vendor_count' => (int) ($response['vendor_count'] ?? 0),
             'venue_count' => (int) ($response['venue_count'] ?? 0),
             'enquiries' => $this->normalizeRows($response['enquiries'] ?? []),
+            'revenue_total' => (float) ($response['revenue_total'] ?? 0),
+            'event_revenue_chart' => [
+                'year' => (int) ($chart['year'] ?? date('Y')),
+                'events' => $chartEvents,
+            ],
         ];
     }
 

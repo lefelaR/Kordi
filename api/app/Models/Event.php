@@ -16,6 +16,7 @@ class Event extends Model
         'status',
         'finance',
         'attendants',
+        'revenue',
     ];
 
     /**
@@ -26,6 +27,7 @@ class Event extends Model
         return [
             'event_date' => 'date',
             'attendants' => 'integer',
+            'revenue' => 'decimal:2',
             'created_at' => 'datetime',
         ];
     }
