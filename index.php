@@ -69,11 +69,15 @@ if ($requestPath === '/login') {
         $venueController->delete($venueId);
     }
 } elseif ($requestPath === '/events/add') {
-    $events = new App\Models\Event(App\Config\Database::connection());
-    (new App\Controllers\EventController($auth, $events))->add();
+    $database = App\Config\Database::connection();
+    $events = new App\Models\Event($database);
+    $companies = new App\Models\Company($database);
+    (new App\Controllers\EventController($auth, $events, $companies))->add();
 } elseif (preg_match('#^/events/(\d+)/(edit|status|delete)$#', $requestPath, $matches) === 1) {
-    $events = new App\Models\Event(App\Config\Database::connection());
-    $eventController = new App\Controllers\EventController($auth, $events);
+    $database = App\Config\Database::connection();
+    $events = new App\Models\Event($database);
+    $companies = new App\Models\Company($database);
+    $eventController = new App\Controllers\EventController($auth, $events, $companies);
     $eventId = (int) $matches[1];
     if ($matches[2] === 'edit') {
         $eventController->edit($eventId);

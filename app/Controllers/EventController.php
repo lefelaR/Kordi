@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\Auth;
+use App\Models\Company;
 use App\Models\Event;
 use DateTimeImmutable;
 
@@ -12,8 +13,11 @@ class EventController
 
     private const FINANCES = ['quotes', 'invoiced', 'payment made'];
 
-    public function __construct(private Auth $auth, private Event $events)
-    {
+    public function __construct(
+        private Auth $auth,
+        private Event $events,
+        private Company $companies,
+    ) {
     }
 
     public function add(): void
@@ -25,6 +29,9 @@ class EventController
         $error = '';
         $title = '';
         $company = '';
+        $companyContact = '';
+        $companyEmail = '';
+        $companyPhone = '';
         $location = '';
         $eventDate = '';
         $status = 'planned';
@@ -37,6 +44,9 @@ class EventController
             $error = $input['error'];
             $title = $input['title'];
             $company = $input['company'];
+            $companyContact = $input['companyContact'];
+            $companyEmail = $input['companyEmail'];
+            $companyPhone = $input['companyPhone'];
             $location = $input['location'];
             $eventDate = $input['eventDate'];
             $status = $input['status'];
@@ -54,6 +64,12 @@ class EventController
                     $finance,
                     $input['attendantCount'],
                     $input['storedRevenue']
+                );
+                $this->saveCompanyDetails(
+                    $input['storedCompany'],
+                    $input['storedCompanyContact'],
+                    $input['storedCompanyEmail'],
+                    $input['storedCompanyPhone']
                 );
                 header('Location: ' . $this->eventsLocation());
                 exit;
@@ -100,12 +116,19 @@ class EventController
         $finance = (string) $event['finance'];
         $attendants = (string) $event['attendants'];
         $revenue = $event['revenue'] === null ? '' : (string) $event['revenue'];
+        $companyDetails = $this->companyDetailsFor($company);
+        $companyContact = $companyDetails['contact'];
+        $companyEmail = $companyDetails['email'];
+        $companyPhone = $companyDetails['phone'];
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $input = $this->readEventInput();
             $error = $input['error'];
             $title = $input['title'];
             $company = $input['company'];
+            $companyContact = $input['companyContact'];
+            $companyEmail = $input['companyEmail'];
+            $companyPhone = $input['companyPhone'];
             $location = $input['location'];
             $eventDate = $input['eventDate'];
             $status = $input['status'];
@@ -124,6 +147,12 @@ class EventController
                     $finance,
                     $input['attendantCount'],
                     $input['storedRevenue']
+                );
+                $this->saveCompanyDetails(
+                    $input['storedCompany'],
+                    $input['storedCompanyContact'],
+                    $input['storedCompanyEmail'],
+                    $input['storedCompanyPhone']
                 );
                 header('Location: ' . $this->eventsLocation());
                 exit;
@@ -225,10 +254,55 @@ class EventController
         return '/dashboard/events?page=' . $page;
     }
 
+    /**
+     * @return array{contact: string, email: string, phone: string}
+     */
+    private function companyDetailsFor(string $companyName): array
+    {
+        if ($companyName === '') {
+            return [
+                'contact' => '',
+                'email' => '',
+                'phone' => '',
+            ];
+        }
+
+        $existing = $this->companies->findByName($companyName);
+        if ($existing === null) {
+            return [
+                'contact' => '',
+                'email' => '',
+                'phone' => '',
+            ];
+        }
+
+        return [
+            'contact' => (string) ($existing['contact'] ?? ''),
+            'email' => (string) ($existing['email'] ?? ''),
+            'phone' => (string) ($existing['phone'] ?? ''),
+        ];
+    }
+
+    private function saveCompanyDetails(
+        ?string $companyName,
+        ?string $contact,
+        ?string $email,
+        ?string $phone,
+    ): void {
+        if ($companyName === null || $companyName === '') {
+            return;
+        }
+
+        $this->companies->saveDetails($companyName, $contact, $email, $phone);
+    }
+
     private function readEventInput(): array
     {
         $title = trim($_POST['title'] ?? '');
         $company = trim($_POST['company'] ?? '');
+        $companyContact = trim($_POST['company_contact'] ?? '');
+        $companyEmail = trim($_POST['company_email'] ?? '');
+        $companyPhone = trim($_POST['company_phone'] ?? '');
         $location = trim($_POST['location'] ?? '');
         $eventDate = trim($_POST['event_date'] ?? '');
         $status = $_POST['status'] ?? '';
@@ -239,6 +313,9 @@ class EventController
         $storedLocation = null;
         $storedDate = null;
         $storedRevenue = null;
+        $storedCompanyContact = null;
+        $storedCompanyEmail = null;
+        $storedCompanyPhone = null;
         $attendantCount = 0;
         $error = '';
 
@@ -246,6 +323,19 @@ class EventController
             $error = 'Enter an event title of 180 characters or fewer.';
         } elseif (strlen($company) > 180) {
             $error = 'Enter a company name of 180 characters or fewer.';
+        } elseif (strlen($companyContact) > 180) {
+            $error = 'Enter a contact name of 180 characters or fewer.';
+        } elseif ($companyEmail !== '' && !filter_var($companyEmail, FILTER_VALIDATE_EMAIL)) {
+            $error = 'Enter a valid company email address.';
+        } elseif (strlen($companyEmail) > 255) {
+            $error = 'Enter a company email of 255 characters or fewer.';
+        } elseif (strlen($companyPhone) > 40) {
+            $error = 'Enter a company phone of 40 characters or fewer.';
+        } elseif (
+            $company === ''
+            && ($companyContact !== '' || $companyEmail !== '' || $companyPhone !== '')
+        ) {
+            $error = 'Enter a company name to save company details.';
         } elseif (strlen($location) > 255) {
             $error = 'Enter a location of 255 characters or fewer.';
         } elseif ($eventDate !== '') {
@@ -271,6 +361,9 @@ class EventController
             $attendantCount = (int) $attendants;
             $storedCompany = $company === '' ? null : $company;
             $storedLocation = $location === '' ? null : $location;
+            $storedCompanyContact = $companyContact === '' ? null : $companyContact;
+            $storedCompanyEmail = $companyEmail === '' ? null : $companyEmail;
+            $storedCompanyPhone = $companyPhone === '' ? null : $companyPhone;
         }
 
         if ($error === '' && $revenue !== '') {
@@ -286,6 +379,12 @@ class EventController
             'title' => $title,
             'company' => $company,
             'storedCompany' => $storedCompany,
+            'companyContact' => $companyContact,
+            'storedCompanyContact' => $storedCompanyContact,
+            'companyEmail' => $companyEmail,
+            'storedCompanyEmail' => $storedCompanyEmail,
+            'companyPhone' => $companyPhone,
+            'storedCompanyPhone' => $storedCompanyPhone,
             'location' => $location,
             'storedLocation' => $storedLocation,
             'eventDate' => $eventDate,

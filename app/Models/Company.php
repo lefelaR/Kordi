@@ -49,6 +49,39 @@ class Company
         return $company === false ? null : $company;
     }
 
+    public function findByName(string $name): ?array
+    {
+        $statement = $this->database->prepare(
+            'SELECT id, name, contact, email, phone FROM companies WHERE LOWER(name) = LOWER(:name) LIMIT 1'
+        );
+        $statement->execute(['name' => $name]);
+        $company = $statement->fetch();
+
+        return $company === false ? null : $company;
+    }
+
+    public function ensureExists(string $name): void
+    {
+        $this->saveDetails($name, null, null, null);
+    }
+
+    public function saveDetails(string $name, ?string $contact, ?string $email, ?string $phone): void
+    {
+        $existing = $this->findByName($name);
+        if ($existing === null) {
+            $this->create($name, $contact, $email, $phone);
+            return;
+        }
+
+        $this->update(
+            (int) $existing['id'],
+            (string) $existing['name'],
+            $contact,
+            $email,
+            $phone
+        );
+    }
+
     public function create(string $name, ?string $contact, ?string $email, ?string $phone): void
     {
         $statement = $this->database->prepare(

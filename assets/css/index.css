@@ -1203,6 +1203,29 @@ nav.dashboard-breadcrumb .dashboard-breadcrumb-separator svg {
 	margin-bottom: 0;
 }
 
+.dashboard-form-company {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	padding: 16px;
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	background: var(--card);
+}
+
+.dashboard-form-company h2 {
+	margin: 0;
+	font-size: 15px;
+	font-weight: 600;
+}
+
+.dashboard-form-company > p {
+	margin: -8px 0 0;
+	color: var(--muted-foreground);
+	font-size: 13px;
+	font-weight: 400;
+}
+
 .dashboard-form input,
 .dashboard-form select,
 .dashboard-form textarea {
