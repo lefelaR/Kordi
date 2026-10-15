@@ -36,7 +36,8 @@ class Venue
 
         if ($search === null || $search === '') {
             $statement = $this->database->query(
-                'SELECT id, name, location, price, capacity, created_at FROM venues ORDER BY created_at DESC, id DESC'
+                'SELECT id, name, location, price, capacity, latitude, longitude, created_at FROM venues'
+                . ' ORDER BY created_at DESC, id DESC'
                 . $limitSql
             );
 
@@ -45,7 +46,7 @@ class Venue
 
         $pattern = $this->searchPattern($search);
         $statement = $this->database->prepare(
-            'SELECT id, name, location, price, capacity, created_at FROM venues'
+            'SELECT id, name, location, price, capacity, latitude, longitude, created_at FROM venues'
             . ' WHERE name LIKE :search_name OR location LIKE :search_location'
             . ' ORDER BY created_at DESC, id DESC'
             . $limitSql

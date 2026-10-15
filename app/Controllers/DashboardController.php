@@ -218,6 +218,11 @@ class DashboardController
             $venuePageLinks = $this->pageLinks($venuePage, $venuePageCount);
             $venueRangeStart = $venueCount === 0 ? 0 : (($venuePage - 1) * $payload['meta']['per_page']) + 1;
             $venueRangeEnd = min($venueCount, $venuePage * $payload['meta']['per_page']);
+            $extraStylesheets = ['/assets/leaflet/leaflet.css'];
+            $extraScripts = [
+                '/assets/leaflet/leaflet.js',
+                '/assets/js/venues-list-map.js',
+            ];
         }
 
         if ($section === 'enquiries') {
