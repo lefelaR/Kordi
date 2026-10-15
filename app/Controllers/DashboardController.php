@@ -139,15 +139,36 @@ class DashboardController
             'year' => (int) date('Y'),
             'events' => [],
         ];
+        $overviewCalendar = [
+            'year' => (int) date('Y'),
+            'month' => (int) date('n'),
+            'events' => [],
+        ];
+        $overviewMonthValue = date('Y-m');
 
         if ($section === 'overview') {
-            $overview = $this->dashboardApi->overview();
+            $requestedMonth = trim((string) ($_GET['month'] ?? ''));
+            if (preg_match('/^(\d{4})-(\d{2})$/', $requestedMonth, $monthParts) === 1) {
+                $overviewYear = (int) $monthParts[1];
+                $overviewMonth = (int) $monthParts[2];
+                if ($overviewYear < 2000 || $overviewYear > 2100 || $overviewMonth < 1 || $overviewMonth > 12) {
+                    $overviewYear = (int) date('Y');
+                    $overviewMonth = (int) date('n');
+                }
+            } else {
+                $overviewYear = (int) date('Y');
+                $overviewMonth = (int) date('n');
+            }
+            $overviewMonthValue = sprintf('%04d-%02d', $overviewYear, $overviewMonth);
+
+            $overview = $this->dashboardApi->overview($overviewYear, $overviewMonth);
             $eventCount = $overview['event_count'];
             $vendorCount = $overview['vendor_count'];
             $venueCount = $overview['venue_count'];
             $enquiries = $overview['enquiries'];
             $revenueTotal = $overview['revenue_total'];
             $eventRevenueChart = $overview['event_revenue_chart'];
+            $overviewCalendar = $overview['calendar'];
             $extraScripts = [
                 '/assets/js/chart.umd.min.js',
                 '/assets/js/overview-revenue-chart.js',

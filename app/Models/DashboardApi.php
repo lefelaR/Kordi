@@ -15,12 +15,16 @@ class DashboardApi
      *     venue_count: int,
      *     enquiries: list<array<string, mixed>>,
      *     revenue_total: float,
-     *     event_revenue_chart: array{year: int, events: list<array{id: int, title: string, client: string, month: int, revenue: float}>}
+     *     event_revenue_chart: array{year: int, events: list<array{id: int, title: string, client: string, month: int, revenue: float}>},
+     *     calendar: array{year: int, month: int, events: list<array{id: int, title: string, client: string, day: int, date: string, status: string}>}
      * }
      */
-    public function overview(): array
+    public function overview(int $year, int $month): array
     {
-        $response = $this->client->get('/overview');
+        $response = $this->client->get('/overview', [
+            'year' => $year,
+            'month' => $month,
+        ]);
         $chart = is_array($response['event_revenue_chart'] ?? null)
             ? $response['event_revenue_chart']
             : [];
@@ -38,6 +42,22 @@ class DashboardApi
             ];
         }
 
+        $calendar = is_array($response['calendar'] ?? null) ? $response['calendar'] : [];
+        $calendarEvents = [];
+        foreach (($calendar['events'] ?? []) as $event) {
+            if (!is_array($event)) {
+                continue;
+            }
+            $calendarEvents[] = [
+                'id' => (int) ($event['id'] ?? 0),
+                'title' => (string) ($event['title'] ?? ''),
+                'client' => (string) ($event['client'] ?? ''),
+                'day' => max(1, min(31, (int) ($event['day'] ?? 1))),
+                'date' => (string) ($event['date'] ?? ''),
+                'status' => (string) ($event['status'] ?? 'planned'),
+            ];
+        }
+
         return [
             'event_count' => (int) ($response['event_count'] ?? 0),
             'vendor_count' => (int) ($response['vendor_count'] ?? 0),
@@ -45,8 +65,13 @@ class DashboardApi
             'enquiries' => $this->normalizeRows($response['enquiries'] ?? []),
             'revenue_total' => (float) ($response['revenue_total'] ?? 0),
             'event_revenue_chart' => [
-                'year' => (int) ($chart['year'] ?? date('Y')),
+                'year' => (int) ($chart['year'] ?? $year),
                 'events' => $chartEvents,
+            ],
+            'calendar' => [
+                'year' => (int) ($calendar['year'] ?? $year),
+                'month' => (int) ($calendar['month'] ?? $month),
+                'events' => $calendarEvents,
             ],
         ];
     }

@@ -8,7 +8,7 @@
     <?php endif; ?>
     <form class="dashboard-form dashboard-form-with-details" method="post" action="<?= htmlspecialchars($formAction, ENT_QUOTES, 'UTF-8') ?>">
         <input type="hidden" name="page" value="<?= (int) ($eventPage ?? 1) ?>">
-        <div class="dashboard-form-fields">
+        <div class="dashboard-form-fields dashboard-form-card">
             <label>
                 Title
                 <input type="text" name="title" maxlength="180" required value="<?= htmlspecialchars($title, ENT_QUOTES, 'UTF-8') ?>">
@@ -69,7 +69,7 @@
                 </a>
             </div>
         </div>
-        <div class="dashboard-form-company">
+        <div class="dashboard-form-company dashboard-form-card">
             <h2>Company details</h2>
             <p>Saved to the companies list with this event’s company name.</p>
             <label>
