@@ -168,8 +168,10 @@
             previewVenue.textContent = venue;
         }
         if (previewNotes && previewNotesText) {
-            previewNotes.hidden = notes === '';
-            previewNotesText.textContent = notes;
+            previewNotes.hidden = false;
+            previewNotesText.textContent = notes !== ''
+                ? notes
+                : 'Add important terms for this invoice.';
         }
         if (previewTermNumber) {
             previewTermNumber.textContent = invoiceNumber;

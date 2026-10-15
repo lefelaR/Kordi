@@ -2126,7 +2126,25 @@ nav.dashboard-pagination span {
 }
 
 .dashboard-proforma-letterhead {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 24px;
 	margin-bottom: 24px;
+	padding-bottom: 16px;
+	border-bottom: 1px solid var(--border);
+}
+
+.dashboard-proforma-logo {
+	display: block;
+	width: 88px;
+	height: auto;
+	flex-shrink: 0;
+	object-fit: contain;
+}
+
+.dashboard-proforma-letterhead-copy {
+	text-align: right;
 }
 
 .dashboard-proforma-brand {
@@ -2155,16 +2173,22 @@ nav.dashboard-pagination span {
 	font-size: 28px;
 	font-weight: 700;
 	letter-spacing: 0.06em;
+	text-align: center;
 	text-transform: uppercase;
 }
 
 .dashboard-proforma-meta-line {
+	display: flex;
+	justify-content: center;
+	flex-wrap: wrap;
+	gap: 8px 24px;
 	margin: 0 0 24px;
 	font-size: 13px;
+	text-align: center;
 }
 
 .dashboard-proforma-meta-line span {
-	margin-left: 18px;
+	margin-left: 0;
 }
 
 .dashboard-proforma-section {
@@ -2224,19 +2248,25 @@ nav.dashboard-pagination span {
 }
 
 .dashboard-proforma-important {
-	margin-top: 12px;
-	color: var(--muted-foreground);
-	font-size: 12px;
+	margin: 12px 0 0;
+	color: #3f3f46;
+	font-size: 11px;
+	line-height: 1.5;
+}
+
+.dashboard-proforma-important strong {
+	font-weight: 700;
 }
 
 .dashboard-proforma-total {
 	display: flex;
 	justify-content: space-between;
 	align-items: baseline;
-	margin-top: 16px;
-	padding-top: 12px;
-	border-top: 2px solid var(--foreground);
-	font-size: 16px;
+	margin-top: 14px;
+	padding: 12px 14px;
+	border-top: 1px solid var(--border);
+	background: var(--muted);
+	font-size: 15px;
 	font-weight: 700;
 	letter-spacing: 0.04em;
 	text-transform: uppercase;
@@ -2274,12 +2304,14 @@ nav.dashboard-pagination span {
 .dashboard-proforma-thanks {
 	margin: 28px 0 0;
 	font-size: 13px;
+	text-align: center;
 }
 
 .dashboard-proforma-footer {
 	margin: 10px 0 0;
 	color: var(--muted-foreground);
 	font-size: 11px;
+	text-align: center;
 }
 
 
@@ -2425,10 +2457,17 @@ nav.dashboard-pagination span {
 		grid-template-columns: 1fr;
 	}
 
-	.dashboard-proforma-meta-line span {
-		display: block;
-		margin-left: 0;
-		margin-top: 4px;
+	.dashboard-proforma-letterhead {
+		flex-wrap: wrap;
+	}
+
+	.dashboard-proforma-letterhead-copy {
+		flex: 1 1 12rem;
+	}
+
+	.dashboard-proforma-meta-line {
+		flex-direction: column;
+		gap: 4px;
 	}
 
 	.dashboard-proforma-bank li {

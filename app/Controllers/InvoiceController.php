@@ -31,7 +31,7 @@ class InvoiceController
         $venue = '';
         $invoiceDate = date('Y-m-d');
         $dueDate = date('Y-m-d', strtotime('+7 days'));
-        $notes = '';
+        $notes = 'Venue Hire includes the 3-course buffet meal. Bar Tab overrun is payable on the day based on actual usage. Casino Theme Hire includes themed décor and props.';
         $items = [];
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {

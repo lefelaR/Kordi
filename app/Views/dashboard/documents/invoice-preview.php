@@ -60,7 +60,23 @@ if ($eventLabel !== '' && $venue !== '') {
             margin: 0;
         }
         .letterhead {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 24px;
             margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #e4e4e7;
+        }
+        .logo {
+            display: block;
+            width: 88px;
+            height: auto;
+            flex-shrink: 0;
+            object-fit: contain;
+        }
+        .letterhead-copy {
+            text-align: right;
         }
         .brand {
             font-size: 18px;
@@ -84,14 +100,20 @@ if ($eventLabel !== '' && $venue !== '') {
             font-size: 28px;
             font-weight: 700;
             letter-spacing: 0.06em;
+            text-align: center;
             text-transform: uppercase;
         }
         .meta {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 8px 24px;
             margin-bottom: 24px;
             font-size: 13px;
+            text-align: center;
         }
         .meta span {
-            margin-left: 18px;
+            margin-left: 0;
         }
         .section {
             margin-bottom: 24px;
@@ -136,18 +158,20 @@ if ($eventLabel !== '' && $venue !== '') {
             text-transform: uppercase;
         }
         .important {
-            margin-top: 12px;
-            color: #52525b;
-            font-size: 12px;
+            margin: 12px 0 0;
+            color: #3f3f46;
+            font-size: 11px;
+            line-height: 1.5;
         }
         .total {
             display: flex;
             justify-content: space-between;
             align-items: baseline;
-            margin-top: 16px;
-            padding-top: 12px;
-            border-top: 2px solid #18181b;
-            font-size: 16px;
+            margin-top: 14px;
+            padding: 12px 14px;
+            border-top: 1px solid #e4e4e7;
+            background: #f4f4f5;
+            font-size: 15px;
             font-weight: 700;
             letter-spacing: 0.04em;
             text-transform: uppercase;
@@ -177,26 +201,31 @@ if ($eventLabel !== '' && $venue !== '') {
         .thanks {
             margin-top: 28px;
             font-size: 13px;
+            text-align: center;
         }
         .footer {
             margin-top: 10px;
             color: #71717a;
             font-size: 11px;
+            text-align: center;
         }
     </style>
 </head>
 <body>
     <header class="letterhead">
-        <p class="brand">Kordicraft Creations</p>
-        <p class="tagline">Where Vision Meets Excellence. Effortlessly</p>
-        <p class="contact">15 Africander Street, Montana, 7490 Cape Town</p>
-        <p class="contact">Tel: 082 615 0153 | WhatsApp: 081 311 2922</p>
-        <p class="contact">Email: info@kordicraftcreations.co.za</p>
+        <img class="logo" src="/images/logo.jpeg" alt="Kordicraft Creations">
+        <div class="letterhead-copy">
+            <p class="brand">Kordicraft Creations</p>
+            <p class="tagline">Where Vision Meets Excellence. Effortlessly</p>
+            <p class="contact">15 Africander Street, Montana, 7490 Cape Town</p>
+            <p class="contact">Tel: 082 615 0153 | WhatsApp: 081 311 2922</p>
+            <p class="contact">Email: info@kordicraftcreations.co.za</p>
+        </div>
     </header>
 
     <h1 class="title">Invoice</h1>
     <p class="meta">
-        Invoice No: <strong><?= htmlspecialchars($invoiceNumber, ENT_QUOTES, 'UTF-8') ?></strong>
+        <span>Invoice No: <strong><?= htmlspecialchars($invoiceNumber, ENT_QUOTES, 'UTF-8') ?></strong></span>
         <span>Date: <strong><?= htmlspecialchars($formatDate(isset($invoice['invoice_date']) ? (string) $invoice['invoice_date'] : null), ENT_QUOTES, 'UTF-8') ?></strong></span>
         <span>Due Date: <strong><?= htmlspecialchars($formatDate(isset($invoice['due_date']) ? (string) $invoice['due_date'] : null), ENT_QUOTES, 'UTF-8') ?></strong></span>
     </p>
@@ -242,9 +271,13 @@ if ($eventLabel !== '' && $venue !== '') {
                 <?php endif; ?>
             </tbody>
         </table>
-        <?php if (!empty($invoice['notes'])): ?>
-            <p class="important"><strong>Important:</strong> <?= htmlspecialchars((string) $invoice['notes'], ENT_QUOTES, 'UTF-8') ?></p>
-        <?php endif; ?>
+        <p class="important"><strong>Important:</strong> <?= htmlspecialchars(
+            trim((string) ($invoice['notes'] ?? '')) !== ''
+                ? (string) $invoice['notes']
+                : 'Add important terms for this invoice.',
+            ENT_QUOTES,
+            'UTF-8'
+        ) ?></p>
         <div class="total">
             <span>Total due</span>
             <strong><?= htmlspecialchars($money($total), ENT_QUOTES, 'UTF-8') ?></strong>

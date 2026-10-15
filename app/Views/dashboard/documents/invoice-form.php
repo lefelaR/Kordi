@@ -114,16 +114,19 @@ $billToContact = trim(implode(' | ', array_filter([
             <section class="dashboard-panel dashboard-invoice-preview dashboard-invoice-proforma" aria-label="Invoice preview">
                 <article class="dashboard-proforma" data-invoice-preview>
                     <header class="dashboard-proforma-letterhead">
-                        <p class="dashboard-proforma-brand">Kordicraft Creations</p>
-                        <p class="dashboard-proforma-tagline">Where Vision Meets Excellence. Effortlessly</p>
-                        <p class="dashboard-proforma-contact">15 Africander Street, Montana, 7490 Cape Town</p>
-                        <p class="dashboard-proforma-contact">Tel: 082 615 0153 | WhatsApp: 081 311 2922</p>
-                        <p class="dashboard-proforma-contact">Email: info@kordicraftcreations.co.za</p>
+                        <img class="dashboard-proforma-logo" src="/images/logo.jpeg" alt="Kordicraft Creations">
+                        <div class="dashboard-proforma-letterhead-copy">
+                            <p class="dashboard-proforma-brand">Kordicraft Creations</p>
+                            <p class="dashboard-proforma-tagline">Where Vision Meets Excellence. Effortlessly</p>
+                            <p class="dashboard-proforma-contact">15 Africander Street, Montana, 7490 Cape Town</p>
+                            <p class="dashboard-proforma-contact">Tel: 082 615 0153 | WhatsApp: 081 311 2922</p>
+                            <p class="dashboard-proforma-contact">Email: info@kordicraftcreations.co.za</p>
+                        </div>
                     </header>
 
                     <h2 class="dashboard-proforma-title">Invoice</h2>
                     <p class="dashboard-proforma-meta-line">
-                        Invoice No: <strong data-preview-number><?= htmlspecialchars($invoiceNumber, ENT_QUOTES, 'UTF-8') ?></strong>
+                        <span>Invoice No: <strong data-preview-number><?= htmlspecialchars($invoiceNumber, ENT_QUOTES, 'UTF-8') ?></strong></span>
                         <span>Date: <strong data-preview-date><?= htmlspecialchars($formatPreviewDate($invoiceDate), ENT_QUOTES, 'UTF-8') ?></strong></span>
                         <span>Due Date: <strong data-preview-due><?= htmlspecialchars($formatPreviewDate($dueDate), ENT_QUOTES, 'UTF-8') ?></strong></span>
                     </p>
@@ -151,8 +154,8 @@ $billToContact = trim(implode(' | ', array_filter([
                                 </tr>
                             </tbody>
                         </table>
-                        <p class="dashboard-proforma-important" data-preview-notes <?= $notes === '' ? ' hidden' : '' ?>>
-                            <strong>Important:</strong> <span data-preview-notes-text><?= htmlspecialchars($notes, ENT_QUOTES, 'UTF-8') ?></span>
+                        <p class="dashboard-proforma-important" data-preview-notes>
+                            <strong>Important:</strong> <span data-preview-notes-text><?= htmlspecialchars($notes !== '' ? $notes : 'Add important terms for this invoice.', ENT_QUOTES, 'UTF-8') ?></span>
                         </p>
                         <div class="dashboard-proforma-total">
                             <span>Total due</span>
