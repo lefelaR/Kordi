@@ -1,6 +1,9 @@
 <?php
 
 require __DIR__ . '/vendor/autoload.php';
+require __DIR__ . '/app/error_handler.php';
+kordi_register_error_handlers();
+
 require __DIR__ . '/app/Config/Database.php';
 require __DIR__ . '/app/Models/EnquiryMailer.php';
 require __DIR__ . '/app/Models/Auth.php';

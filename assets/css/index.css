@@ -490,6 +490,116 @@ footer h2 {
 	text-underline-offset: 4px;
 }
 
+.error-page {
+	--font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
+	--font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+	--background: oklch(1 0 0);
+	--foreground: oklch(0.141 0.005 285.823);
+	--muted: oklch(0.967 0.001 286.375);
+	--muted-foreground: oklch(0.552 0.016 285.938);
+	--card: oklch(1 0 0);
+	--card-foreground: oklch(0.141 0.005 285.823);
+	--border: oklch(0.92 0.004 286.32);
+	--destructive: oklch(0.577 0.245 27.325);
+	--radius: 0.625rem;
+	min-height: 100vh;
+	margin: 0;
+	padding: 32px 24px;
+	background: var(--background);
+	color: var(--foreground);
+	font-family: var(--font-sans);
+}
+
+.error-shell {
+	display: flex;
+	flex-direction: column;
+	gap: 24px;
+	
+	margin: 0 auto;
+}
+
+.error-intro h1 {
+	margin: 8px 0 0;
+	font-size: 28px;
+	font-weight: 600;
+	letter-spacing: -0.02em;
+	line-height: 1.25;
+}
+
+.error-eyebrow {
+	margin: 0;
+	color: var(--destructive);
+	font-size: 12px;
+	font-weight: 500;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+
+.error-summary {
+	margin: 12px 0 0;
+	color: var(--muted-foreground);
+	font-size: 15px;
+	line-height: 1.5;
+}
+
+.code-card {
+	overflow: hidden;
+	background: var(--card);
+	color: var(--card-foreground);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+}
+
+.code-card-destructive {
+	border-color: color-mix(in oklch, var(--destructive) 35%, var(--border));
+}
+
+.code-card-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 10px 14px;
+	background: color-mix(in oklch, var(--destructive) 8%, var(--muted));
+	border-bottom: 1px solid color-mix(in oklch, var(--destructive) 20%, var(--border));
+}
+
+.code-card-title {
+	min-width: 0;
+	overflow: hidden;
+	color: var(--destructive);
+	font-size: 13px;
+	font-weight: 600;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.code-card-meta {
+	flex: none;
+	color: var(--muted-foreground);
+	font-family: var(--font-mono);
+	font-size: 12px;
+}
+
+.code-card-content {
+	margin: 0;
+	max-height: min(70vh, 36rem);
+	padding: 14px;
+	overflow: auto;
+	color: var(--foreground);
+	font-family: var(--font-mono);
+	font-size: 12.5px;
+	line-height: 1.55;
+	white-space: pre-wrap;
+	overflow-wrap: anywhere;
+	tab-size: 2;
+}
+
+.code-card-content:focus {
+	outline: 2px solid color-mix(in oklch, var(--destructive) 40%, transparent);
+	outline-offset: -2px;
+}
+
 .dashboard-body {
 	--font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
 	--background: oklch(1 0 0);
@@ -1614,6 +1724,19 @@ nav.dashboard-pagination span {
 
 	.auth-card {
 		padding: 32px 24px;
+	}
+
+	.error-page {
+		padding: 24px 16px;
+	}
+
+	.error-intro h1 {
+		font-size: 24px;
+	}
+
+	.code-card-header {
+		flex-direction: column;
+		align-items: flex-start;
 	}
 
 	.dashboard-shell {
