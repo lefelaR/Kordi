@@ -12,6 +12,7 @@ require __DIR__ . '/app/Models/Auth.php';
 require __DIR__ . '/app/Models/Event.php';
 require __DIR__ . '/app/Models/Vendor.php';
 require __DIR__ . '/app/Models/Company.php';
+require __DIR__ . '/app/Models/Invoice.php';
 require __DIR__ . '/app/Models/Venue.php';
 require __DIR__ . '/app/Controllers/HomeController.php';
 require __DIR__ . '/app/Controllers/AuthController.php';
@@ -19,6 +20,7 @@ require __DIR__ . '/app/Controllers/DashboardController.php';
 require __DIR__ . '/app/Controllers/EventController.php';
 require __DIR__ . '/app/Controllers/VendorController.php';
 require __DIR__ . '/app/Controllers/CompanyController.php';
+require __DIR__ . '/app/Controllers/InvoiceController.php';
 require __DIR__ . '/app/Controllers/VenueController.php';
 
 $apiBaseUrl = $_ENV['API_BASE_URL'] ?? getenv('API_BASE_URL') ?: 'http://api:8000/api';
@@ -47,6 +49,16 @@ if ($requestPath === '/login') {
 } elseif ($requestPath === '/companies/add') {
     $companies = new App\Models\Company(App\Config\Database::connection());
     (new App\Controllers\CompanyController($auth, $companies))->add();
+} elseif ($requestPath === '/invoices/add') {
+    $database = App\Config\Database::connection();
+    $invoices = new App\Models\Invoice($database);
+    $companies = new App\Models\Company($database);
+    (new App\Controllers\InvoiceController($auth, $invoices, $companies))->add();
+} elseif (preg_match('#^/invoices/(\d+)/preview$#', $requestPath, $matches) === 1) {
+    $database = App\Config\Database::connection();
+    $invoices = new App\Models\Invoice($database);
+    $companies = new App\Models\Company($database);
+    (new App\Controllers\InvoiceController($auth, $invoices, $companies))->preview((int) $matches[1]);
 } elseif (preg_match('#^/companies/(\d+)/(edit|delete)$#', $requestPath, $matches) === 1) {
     $companies = new App\Models\Company(App\Config\Database::connection());
     $companyController = new App\Controllers\CompanyController($auth, $companies);
@@ -87,9 +99,11 @@ if ($requestPath === '/login') {
         $eventController->delete($eventId);
     }
 } elseif (preg_match('#^/dashboard/documents/(proposals|invoices|proofs|acknowledgement)$#', $requestPath, $matches) === 1) {
-    (new App\Controllers\DashboardController($auth, $dashboardApi))->show('documents', $matches[1]);
+    $invoices = new App\Models\Invoice(App\Config\Database::connection());
+    (new App\Controllers\DashboardController($auth, $dashboardApi, $invoices))->show('documents', $matches[1]);
 } elseif (preg_match('#^/dashboard(?:/([a-z]+))?$#', $requestPath, $matches) === 1) {
-    (new App\Controllers\DashboardController($auth, $dashboardApi))->show($matches[1] ?? 'overview');
+    $invoices = new App\Models\Invoice(App\Config\Database::connection());
+    (new App\Controllers\DashboardController($auth, $dashboardApi, $invoices))->show($matches[1] ?? 'overview');
 } else {
     (new App\Controllers\HomeController(new App\Models\EnquiryMailer()))->handle();
 }
