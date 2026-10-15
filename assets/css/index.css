@@ -1033,6 +1033,57 @@ nav.dashboard-breadcrumb .dashboard-breadcrumb-separator svg {
 	height: 18px;
 }
 
+.dashboard-location-suggestions {
+	position: absolute;
+	top: calc(100% + 4px);
+	left: 0;
+	right: 0;
+	z-index: 20;
+	margin: 0;
+	padding: 4px;
+	list-style: none;
+	max-height: 14rem;
+	overflow: auto;
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	background: #ffffff;
+	color: var(--popover-foreground);
+	box-shadow: 0 8px 24px oklch(0.141 0.005 285.823 / 0.12);
+}
+
+.dashboard-location-suggestions[hidden] {
+	display: none;
+}
+
+.dashboard-location-suggestion {
+	display: block;
+	width: 100%;
+	padding: 8px 10px;
+	border: 0;
+	border-radius: calc(var(--radius) - 2px);
+	background: #ffffff;
+	color: inherit;
+	font: inherit;
+	font-size: 13px;
+	font-weight: 400;
+	line-height: 1.35;
+	text-align: left;
+	cursor: pointer;
+}
+
+.dashboard-location-suggestion:hover,
+.dashboard-location-suggestion[aria-selected="true"] {
+	background: var(--accent);
+	color: var(--accent-foreground);
+}
+
+.dashboard-location-suggestion-empty {
+	padding: 8px 10px;
+	color: var(--muted-foreground);
+	font-size: 13px;
+	font-weight: 400;
+}
+
 .dashboard-map-modal {
 	width: min(56rem, calc(100vw - 2rem));
 	max-width: calc(100vw - 2rem);

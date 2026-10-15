@@ -28,12 +28,13 @@
             <label>
                 Location
                 <div class="dashboard-location-field">
-                    <input type="text" name="location" maxlength="255" value="<?= htmlspecialchars($location, ENT_QUOTES, 'UTF-8') ?>">
+                    <input type="text" name="location" maxlength="255" value="<?= htmlspecialchars($location, ENT_QUOTES, 'UTF-8') ?>" autocomplete="off" role="combobox" aria-autocomplete="list" aria-controls="venue-location-suggestions" aria-expanded="false" data-venue-location-input>
                     <button class="dashboard-location-picker" type="button" data-venue-map-open aria-haspopup="dialog" aria-controls="venue-map-modal" aria-label="Pick location on map">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                             <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z" />
                         </svg>
                     </button>
+                    <ul class="dashboard-location-suggestions" id="venue-location-suggestions" data-venue-location-suggestions role="listbox" hidden></ul>
                 </div>
             </label>
             <label>
@@ -69,6 +70,10 @@
             <textarea name="details" rows="12" maxlength="5000"><?= htmlspecialchars($details, ENT_QUOTES, 'UTF-8') ?></textarea>
         </label>
     </form>
+
+    <div class="dashboard-panel dashboard-venues-map-panel">
+        <div class="dashboard-venues-map" data-venue-preview-map role="img" aria-label="Selected venue location on map"></div>
+    </div>
 
     <dialog class="dashboard-map-modal" id="venue-map-modal" data-venue-map-modal>
         <div class="dashboard-map-modal-card">

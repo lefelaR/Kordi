@@ -7,15 +7,9 @@
     const capeTown = [-33.9249, 18.4241];
     const defaultZoom = 12;
 
-    L.Icon.Default.mergeOptions({
-        iconUrl: '/assets/leaflet/images/marker-icon.png',
-        iconRetinaUrl: '/assets/leaflet/images/marker-icon-2x.png',
-        shadowUrl: '/assets/leaflet/images/marker-shadow.png',
-    });
+    L.Icon.Default.imagePath = '/assets/leaflet/images/';
 
-    const map = L.map(mapElement, {
-        scrollWheelZoom: false,
-    }).setView(capeTown, defaultZoom);
+    const map = L.map(mapElement).setView(capeTown, defaultZoom);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
