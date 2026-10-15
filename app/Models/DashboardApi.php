@@ -15,6 +15,8 @@ class DashboardApi
      *     venue_count: int,
      *     enquiries: list<array<string, mixed>>,
      *     revenue_total: float,
+     *     month_revenue_total: float,
+     *     month_daily_revenue: list<float>,
      *     event_revenue_chart: array{year: int, events: list<array{id: int, title: string, client: string, month: int, revenue: float}>},
      *     calendar: array{year: int, month: int, events: list<array{id: int, title: string, client: string, day: int, date: string, status: string}>}
      * }
@@ -58,12 +60,19 @@ class DashboardApi
             ];
         }
 
+        $dailyRevenue = [];
+        foreach (($response['month_daily_revenue'] ?? []) as $amount) {
+            $dailyRevenue[] = (float) $amount;
+        }
+
         return [
             'event_count' => (int) ($response['event_count'] ?? 0),
             'vendor_count' => (int) ($response['vendor_count'] ?? 0),
             'venue_count' => (int) ($response['venue_count'] ?? 0),
             'enquiries' => $this->normalizeRows($response['enquiries'] ?? []),
             'revenue_total' => (float) ($response['revenue_total'] ?? 0),
+            'month_revenue_total' => (float) ($response['month_revenue_total'] ?? 0),
+            'month_daily_revenue' => $dailyRevenue,
             'event_revenue_chart' => [
                 'year' => (int) ($chart['year'] ?? $year),
                 'events' => $chartEvents,

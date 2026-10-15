@@ -135,6 +135,8 @@ class DashboardController
         $invoiceCompanies = [];
         $selectedInvoice = null;
         $revenueTotal = 0.0;
+        $monthRevenueTotal = 0.0;
+        $monthDailyRevenue = [];
         $eventRevenueChart = [
             'year' => (int) date('Y'),
             'events' => [],
@@ -167,6 +169,8 @@ class DashboardController
             $venueCount = $overview['venue_count'];
             $enquiries = $overview['enquiries'];
             $revenueTotal = $overview['revenue_total'];
+            $monthRevenueTotal = $overview['month_revenue_total'];
+            $monthDailyRevenue = $overview['month_daily_revenue'];
             $eventRevenueChart = $overview['event_revenue_chart'];
             $overviewCalendar = $overview['calendar'];
             $extraScripts = [
