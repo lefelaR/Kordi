@@ -21,6 +21,7 @@ require __DIR__ . '/app/Controllers/EventController.php';
 require __DIR__ . '/app/Controllers/VendorController.php';
 require __DIR__ . '/app/Controllers/CompanyController.php';
 require __DIR__ . '/app/Controllers/InvoiceController.php';
+require __DIR__ . '/app/Controllers/ContractController.php';
 require __DIR__ . '/app/Controllers/VenueController.php';
 
 $apiBaseUrl = $_ENV['API_BASE_URL'] ?? getenv('API_BASE_URL') ?: 'http://api:8000/api';
@@ -54,6 +55,8 @@ if ($requestPath === '/login') {
     $invoices = new App\Models\Invoice($database);
     $companies = new App\Models\Company($database);
     (new App\Controllers\InvoiceController($auth, $invoices, $companies))->add();
+} elseif ($requestPath === '/contracts/add') {
+    (new App\Controllers\ContractController($auth))->add();
 } elseif (preg_match('#^/invoices/(\d+)/preview$#', $requestPath, $matches) === 1) {
     $database = App\Config\Database::connection();
     $invoices = new App\Models\Invoice($database);

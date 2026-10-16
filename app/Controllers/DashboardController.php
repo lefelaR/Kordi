@@ -141,6 +141,8 @@ class DashboardController
         $enquiries = [];
         $invoiceCompanies = [];
         $selectedInvoice = null;
+        $contractCompanies = [];
+        $selectedContract = null;
         $revenueTotal = 0.0;
         $monthRevenueTotal = 0.0;
         $monthDailyRevenue = [];
@@ -296,6 +298,16 @@ class DashboardController
                     $selectedInvoice = $company['invoices'][0];
                     break;
                 }
+            }
+        }
+
+        if ($section === 'documents' && $subsection === 'contract') {
+            foreach ($this->dashboardApi->companiesAll() as $company) {
+                $contractCompanies[] = [
+                    'id' => (int) $company['id'],
+                    'name' => (string) $company['name'],
+                    'contracts' => [],
+                ];
             }
         }
 
