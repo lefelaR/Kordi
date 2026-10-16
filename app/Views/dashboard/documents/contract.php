@@ -1,9 +1,9 @@
 <section class="dashboard-page">
     <header class="dashboard-page-header">
-        <h1>Agreements</h1>
-        <p>Client and supplier agreements.</p>
+        <h1>Contract</h1>
+        <p>Client and supplier contracts.</p>
     </header>
     <div class="dashboard-panel">
-        <p class="dashboard-empty">No agreements yet.</p>
+        <p class="dashboard-empty">No contracts yet.</p>
     </div>
 </section>

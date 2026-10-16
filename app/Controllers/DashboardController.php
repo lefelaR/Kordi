@@ -61,10 +61,10 @@ class DashboardController
                         'label' => 'Invoices',
                         'view' => __DIR__ . '/../Views/dashboard/documents/invoices.php',
                     ],
-                    'agreements' => [
-                        'title' => 'Agreements | Kordicraft Creations',
-                        'label' => 'Agreements',
-                        'view' => __DIR__ . '/../Views/dashboard/documents/agreements.php',
+                    'contract' => [
+                        'title' => 'Contract | Kordicraft Creations',
+                        'label' => 'Contract',
+                        'view' => __DIR__ . '/../Views/dashboard/documents/contract.php',
                     ],
                     'proofs' => [
                         'title' => 'Proofs | Kordicraft Creations',

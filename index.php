@@ -98,7 +98,7 @@ if ($requestPath === '/login') {
     } else {
         $eventController->delete($eventId);
     }
-} elseif (preg_match('#^/dashboard/documents/(proposals|invoices|agreements|proofs|acknowledgement)$#', $requestPath, $matches) === 1) {
+} elseif (preg_match('#^/dashboard/documents/(proposals|invoices|contract|proofs|acknowledgement)$#', $requestPath, $matches) === 1) {
     $invoices = new App\Models\Invoice(App\Config\Database::connection());
     (new App\Controllers\DashboardController($auth, $dashboardApi, $invoices))->show('documents', $matches[1]);
 } elseif (preg_match('#^/dashboard(?:/([a-z]+))?$#', $requestPath, $matches) === 1) {
