@@ -88,6 +88,11 @@ if ($requestPath === '/login') {
     $events = new App\Models\Event($database);
     $companies = new App\Models\Company($database);
     (new App\Controllers\EventController($auth, $events, $companies))->add();
+} elseif (preg_match('#^/events/(\d+)$#', $requestPath, $matches) === 1) {
+    $database = App\Config\Database::connection();
+    $events = new App\Models\Event($database);
+    $companies = new App\Models\Company($database);
+    (new App\Controllers\EventController($auth, $events, $companies))->show((int) $matches[1]);
 } elseif (preg_match('#^/events/(\d+)/(edit|status|delete)$#', $requestPath, $matches) === 1) {
     $database = App\Config\Database::connection();
     $events = new App\Models\Event($database);

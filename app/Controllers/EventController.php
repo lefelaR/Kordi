@@ -95,6 +95,36 @@ class EventController
         require __DIR__ . '/../Views/layouts/dashboard.php';
     }
 
+    public function show(int $id): void
+    {
+        if (!$this->requireAuth()) {
+            return;
+        }
+
+        $event = $this->events->find($id);
+        if ($event === null) {
+            $this->notFound();
+            return;
+        }
+
+        $company = (string) ($event['company'] ?? '');
+        $companyDetails = $this->companyDetailsFor($company);
+        $eventPage = $this->requestedPage();
+        $pageTitle = (string) $event['title'] . ' | Kordicraft Creations';
+        $currentSection = 'events';
+        $breadcrumbs = [
+            ['label' => 'Dashboard', 'href' => '/dashboard'],
+            ['label' => 'Events', 'href' => '/dashboard/events'],
+            ['label' => (string) $event['title']],
+        ];
+
+        ob_start();
+        require __DIR__ . '/../Views/dashboard/events/show.php';
+        $content = ob_get_clean();
+
+        require __DIR__ . '/../Views/layouts/dashboard.php';
+    }
+
     public function edit(int $id): void
     {
         if (!$this->requireAuth()) {
