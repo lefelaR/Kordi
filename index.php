@@ -13,6 +13,7 @@ require __DIR__ . '/app/Models/Event.php';
 require __DIR__ . '/app/Models/Vendor.php';
 require __DIR__ . '/app/Models/Company.php';
 require __DIR__ . '/app/Models/Invoice.php';
+require __DIR__ . '/app/Models/Quotation.php';
 require __DIR__ . '/app/Models/Venue.php';
 require __DIR__ . '/app/Controllers/HomeController.php';
 require __DIR__ . '/app/Controllers/AuthController.php';
@@ -21,6 +22,8 @@ require __DIR__ . '/app/Controllers/EventController.php';
 require __DIR__ . '/app/Controllers/VendorController.php';
 require __DIR__ . '/app/Controllers/CompanyController.php';
 require __DIR__ . '/app/Controllers/InvoiceController.php';
+require __DIR__ . '/app/Controllers/QuotationController.php';
+require __DIR__ . '/app/Controllers/ContractController.php';
 require __DIR__ . '/app/Controllers/VenueController.php';
 
 $apiBaseUrl = $_ENV['API_BASE_URL'] ?? getenv('API_BASE_URL') ?: 'http://api:8000/api';
@@ -54,11 +57,23 @@ if ($requestPath === '/login') {
     $invoices = new App\Models\Invoice($database);
     $companies = new App\Models\Company($database);
     (new App\Controllers\InvoiceController($auth, $invoices, $companies))->add();
+} elseif ($requestPath === '/quotations/add') {
+    $database = App\Config\Database::connection();
+    $quotations = new App\Models\Quotation($database);
+    $companies = new App\Models\Company($database);
+    (new App\Controllers\QuotationController($auth, $quotations, $companies))->add();
+} elseif ($requestPath === '/contracts/add') {
+    (new App\Controllers\ContractController($auth))->add();
 } elseif (preg_match('#^/invoices/(\d+)/preview$#', $requestPath, $matches) === 1) {
     $database = App\Config\Database::connection();
     $invoices = new App\Models\Invoice($database);
     $companies = new App\Models\Company($database);
     (new App\Controllers\InvoiceController($auth, $invoices, $companies))->preview((int) $matches[1]);
+} elseif (preg_match('#^/quotations/(\d+)/preview$#', $requestPath, $matches) === 1) {
+    $database = App\Config\Database::connection();
+    $quotations = new App\Models\Quotation($database);
+    $companies = new App\Models\Company($database);
+    (new App\Controllers\QuotationController($auth, $quotations, $companies))->preview((int) $matches[1]);
 } elseif (preg_match('#^/companies/(\d+)/(edit|delete)$#', $requestPath, $matches) === 1) {
     $companies = new App\Models\Company(App\Config\Database::connection());
     $companyController = new App\Controllers\CompanyController($auth, $companies);
@@ -85,6 +100,11 @@ if ($requestPath === '/login') {
     $events = new App\Models\Event($database);
     $companies = new App\Models\Company($database);
     (new App\Controllers\EventController($auth, $events, $companies))->add();
+} elseif (preg_match('#^/events/(\d+)$#', $requestPath, $matches) === 1) {
+    $database = App\Config\Database::connection();
+    $events = new App\Models\Event($database);
+    $companies = new App\Models\Company($database);
+    (new App\Controllers\EventController($auth, $events, $companies))->show((int) $matches[1]);
 } elseif (preg_match('#^/events/(\d+)/(edit|status|delete)$#', $requestPath, $matches) === 1) {
     $database = App\Config\Database::connection();
     $events = new App\Models\Event($database);
@@ -98,12 +118,16 @@ if ($requestPath === '/login') {
     } else {
         $eventController->delete($eventId);
     }
-} elseif (preg_match('#^/dashboard/documents/(proposals|invoices|proofs|acknowledgement)$#', $requestPath, $matches) === 1) {
-    $invoices = new App\Models\Invoice(App\Config\Database::connection());
-    (new App\Controllers\DashboardController($auth, $dashboardApi, $invoices))->show('documents', $matches[1]);
+} elseif (preg_match('#^/dashboard/documents/(proposals|invoices|receipts|contract|quotations|proofs|acknowledgement)$#', $requestPath, $matches) === 1) {
+    $database = App\Config\Database::connection();
+    $invoices = new App\Models\Invoice($database);
+    $quotations = new App\Models\Quotation($database);
+    (new App\Controllers\DashboardController($auth, $dashboardApi, $invoices, $quotations))->show('documents', $matches[1]);
 } elseif (preg_match('#^/dashboard(?:/([a-z]+))?$#', $requestPath, $matches) === 1) {
-    $invoices = new App\Models\Invoice(App\Config\Database::connection());
-    (new App\Controllers\DashboardController($auth, $dashboardApi, $invoices))->show($matches[1] ?? 'overview');
+    $database = App\Config\Database::connection();
+    $invoices = new App\Models\Invoice($database);
+    $quotations = new App\Models\Quotation($database);
+    (new App\Controllers\DashboardController($auth, $dashboardApi, $invoices, $quotations))->show($matches[1] ?? 'overview');
 } else {
     (new App\Controllers\HomeController(new App\Models\EnquiryMailer()))->handle();
 }
