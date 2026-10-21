@@ -44,7 +44,13 @@
                         $companyLabel = trim((string) ($event['company'] ?? ''));
                         $locationLabel = trim((string) ($event['location'] ?? ''));
                         ?>
-                        <tr>
+                        <tr
+                            class="dashboard-table-row-link"
+                            data-href="/events/<?= (int) $event['id'] ?>?page=<?= (int) $eventPage ?>"
+                            tabindex="0"
+                            role="link"
+                            aria-label="View <?= htmlspecialchars($event['title'], ENT_QUOTES, 'UTF-8') ?>"
+                        >
                             <td><?= htmlspecialchars($event['title'], ENT_QUOTES, 'UTF-8') ?></td>
                             <td><?= htmlspecialchars($companyLabel !== '' ? $companyLabel : '—', ENT_QUOTES, 'UTF-8') ?></td>
                             <td><?= htmlspecialchars($locationLabel !== '' ? $locationLabel : '—', ENT_QUOTES, 'UTF-8') ?></td>
@@ -65,7 +71,7 @@
                                 <span class="dashboard-status-badge <?= htmlspecialchars($financeClass, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars((string) ($event['finance'] ?? ''), ENT_QUOTES, 'UTF-8') ?></span>
                             </td>
                             <td><?= (int) $event['attendants'] ?></td>
-                            <td>
+                            <td class="dashboard-table-actions-cell">
                                 <div class="dashboard-actions">
                                     <!-- <form method="post" action="/events/<?= (int) $event['id'] ?>/status">
                                         <input type="hidden" name="page" value="<?= (int) $eventPage ?>">
@@ -130,4 +136,33 @@
             </nav>
         <?php endif; ?>
     </div>
+    <script>
+        (() => {
+            document.querySelectorAll('.dashboard-table-row-link[data-href]').forEach((row) => {
+                const go = () => {
+                    const href = row.getAttribute('data-href');
+                    if (href) {
+                        window.location.href = href;
+                    }
+                };
+
+                row.addEventListener('click', (event) => {
+                    if (event.target.closest('a, button, form, input, select, label, .dashboard-table-actions-cell')) {
+                        return;
+                    }
+                    go();
+                });
+
+                row.addEventListener('keydown', (event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                        if (event.target !== row) {
+                            return;
+                        }
+                        event.preventDefault();
+                        go();
+                    }
+                });
+            });
+        })();
+    </script>
 </section>
