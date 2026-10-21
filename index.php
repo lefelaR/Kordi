@@ -5,6 +5,7 @@ require __DIR__ . '/app/error_handler.php';
 kordi_register_error_handlers();
 
 require __DIR__ . '/app/Config/Database.php';
+require __DIR__ . '/app/Models/MailTransport.php';
 require __DIR__ . '/app/Models/EnquiryMailer.php';
 require __DIR__ . '/app/Models/ApiClient.php';
 require __DIR__ . '/app/Models/DashboardApi.php';
@@ -31,6 +32,7 @@ $apiBaseUrl = $_ENV['API_BASE_URL'] ?? getenv('API_BASE_URL') ?: 'http://api:800
 $apiClient = new App\Models\ApiClient($apiBaseUrl);
 $auth = new App\Models\Auth($apiClient);
 $dashboardApi = new App\Models\DashboardApi($apiClient->withToken($auth->apiToken()));
+$mailTransport = new App\Models\MailTransport();
 
 $requestPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
 
@@ -62,19 +64,19 @@ if ($requestPath === '/login') {
     $database = App\Config\Database::connection();
     $quotations = new App\Models\Quotation($database);
     $companies = new App\Models\Company($database);
-    $quotationMailer = new App\Models\QuotationMailer();
+    $quotationMailer = new App\Models\QuotationMailer($mailTransport);
     (new App\Controllers\QuotationController($auth, $quotations, $companies, $quotationMailer))->add();
 } elseif (preg_match('#^/quotations/(\d+)/send$#', $requestPath, $matches) === 1) {
     $database = App\Config\Database::connection();
     $quotations = new App\Models\Quotation($database);
     $companies = new App\Models\Company($database);
-    $quotationMailer = new App\Models\QuotationMailer();
+    $quotationMailer = new App\Models\QuotationMailer($mailTransport);
     (new App\Controllers\QuotationController($auth, $quotations, $companies, $quotationMailer))->send((int) $matches[1]);
 } elseif (preg_match('#^/quotations/(\d+)/edit$#', $requestPath, $matches) === 1) {
     $database = App\Config\Database::connection();
     $quotations = new App\Models\Quotation($database);
     $companies = new App\Models\Company($database);
-    $quotationMailer = new App\Models\QuotationMailer();
+    $quotationMailer = new App\Models\QuotationMailer($mailTransport);
     (new App\Controllers\QuotationController($auth, $quotations, $companies, $quotationMailer))->edit((int) $matches[1]);
 } elseif ($requestPath === '/contracts/add') {
     (new App\Controllers\ContractController($auth))->add();
@@ -87,7 +89,7 @@ if ($requestPath === '/login') {
     $database = App\Config\Database::connection();
     $quotations = new App\Models\Quotation($database);
     $companies = new App\Models\Company($database);
-    $quotationMailer = new App\Models\QuotationMailer();
+    $quotationMailer = new App\Models\QuotationMailer($mailTransport);
     (new App\Controllers\QuotationController($auth, $quotations, $companies, $quotationMailer))->preview((int) $matches[1]);
 } elseif (preg_match('#^/companies/(\d+)/(edit|delete)$#', $requestPath, $matches) === 1) {
     $companies = new App\Models\Company(App\Config\Database::connection());
@@ -144,5 +146,5 @@ if ($requestPath === '/login') {
     $quotations = new App\Models\Quotation($database);
     (new App\Controllers\DashboardController($auth, $dashboardApi, $invoices, $quotations))->show($matches[1] ?? 'overview');
 } else {
-    (new App\Controllers\HomeController(new App\Models\EnquiryMailer()))->handle();
+    (new App\Controllers\HomeController(new App\Models\EnquiryMailer($mailTransport)))->handle();
 }

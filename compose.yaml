@@ -16,11 +16,23 @@ services:
       APP_LOGIN_EMAIL: ${APP_LOGIN_EMAIL:-admin@kordicraftcreations.co.za}
       APP_LOGIN_PASSWORD: ${APP_LOGIN_PASSWORD:-kordicraft-demo}
       API_BASE_URL: ${API_BASE_URL:-http://api:8000/api}
+      MAIL_HOST: ${MAIL_HOST:-mailpit}
+      MAIL_PORT: ${MAIL_PORT:-1025}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_ENCRYPTION: ${MAIL_ENCRYPTION:-}
     depends_on:
       db:
         condition: service_healthy
       api:
         condition: service_started
+      mailpit:
+        condition: service_started
+
+  mailpit:
+    image: axllent/mailpit
+    ports:
+      - "${MAILPIT_PORT:-8025}:8025"
 
   api:
     build:

@@ -3,15 +3,17 @@
 namespace App\Models;
 
 use PHPMailer\PHPMailer\Exception;
-use PHPMailer\PHPMailer\PHPMailer;
 
 class QuotationMailer
 {
+    public function __construct(private MailTransport $transport)
+    {
+    }
+
     public function send(string $email, string $companyName, string $quotationNumber, string $title): bool
     {
         try {
-            $mailer = new PHPMailer(true);
-            $mailer->isMail();
+            $mailer = $this->transport->open();
             $mailer->setFrom('info@kordicraftcreations.co.za', 'Kordicraft Creations');
             $mailer->addAddress($email, $companyName);
             $mailer->Subject = 'Quotation ' . $quotationNumber;

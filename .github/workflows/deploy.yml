@@ -3,13 +3,18 @@
 # happen after review approval.
 #
 # Repository secrets required:
-#   DEPLOY_HOST      – server hostname or IP
-#   DEPLOY_USER      – SSH user
-#   DEPLOY_SSH_KEY   – private key for that user
-#   DEPLOY_PATH      – absolute path on the server (e.g. /var/www/kordi)
+#   FTP_SERVER       – server hostname or IP
+#   FTP_USERNAME     – cPanel / SSH user
+#   CPANEL_SSH_KEY   – private key for that user
+#   DEPLOY_PATH      – absolute directory on the server (e.g. /home/user/public_html)
 #
 # Optional secrets:
 #   DEPLOY_PORT      – SSH port (default 22)
+#   FTP_PASSWORD     – unused; deploy connects with CPANEL_SSH_KEY
+#
+# The server needs PHP 8.3 or newer. Composer is installed for the deploy
+# user if it is not already on PATH. After rsync, the job runs
+# `composer install` on the server for this site and for api/.
 #
 # Also create a GitHub Environment named "production" (Settings → Environments)
 # if you want an extra manual approval gate before the deploy job runs.
@@ -41,65 +46,58 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: "8.3"
-          tools: composer
-          coverage: none
-
-      - name: Install production dependencies
-        run: composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
-
-      - name: Setup PHP for Laravel API
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: "8.4"
-          tools: composer
-          coverage: none
-
-      - name: Install Laravel API production dependencies
-        working-directory: api
-        run: composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
-
-      - name: Deploy with rsync over SSH
+      - name: Prepare SSH
         env:
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
-          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+          DEPLOY_HOST: ${{ secrets.FTP_SERVER }}
+          DEPLOY_SSH_KEY: ${{ secrets.CPANEL_SSH_KEY }}
           DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
         run: |
           set -euo pipefail
 
-          for required in DEPLOY_HOST DEPLOY_USER DEPLOY_SSH_KEY DEPLOY_PATH; do
-            if [ -z "${!required}" ]; then
-              echo "::error::Missing required secret: ${required}"
-              exit 1
-            fi
-          done
+          if [ -z "${DEPLOY_HOST}" ] || [ -z "${DEPLOY_SSH_KEY}" ]; then
+            echo "::error::Missing required secret: FTP_SERVER or CPANEL_SSH_KEY"
+            exit 1
+          fi
 
           PORT="${DEPLOY_PORT:-22}"
-          KEY_FILE="$(mktemp)"
+          KEY_FILE="${RUNNER_TEMP}/deploy_key"
           printf '%s\n' "$DEPLOY_SSH_KEY" > "$KEY_FILE"
           chmod 600 "$KEY_FILE"
-
-          cleanup() {
-            rm -f "$KEY_FILE"
-          }
-          trap cleanup EXIT
 
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
           ssh-keyscan -p "$PORT" -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null
 
+          echo "DEPLOY_KEY_FILE=${KEY_FILE}" >> "$GITHUB_ENV"
+          echo "DEPLOY_SSH_PORT=${PORT}" >> "$GITHUB_ENV"
+
+      - name: Deploy with rsync over SSH
+        env:
+          DEPLOY_HOST: ${{ secrets.FTP_SERVER }}
+          DEPLOY_USER: ${{ secrets.FTP_USERNAME }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+          DEPLOY_KEY_FILE: ${{ env.DEPLOY_KEY_FILE }}
+          DEPLOY_SSH_PORT: ${{ env.DEPLOY_SSH_PORT }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${DEPLOY_HOST}" ] || [ -z "${DEPLOY_USER}" ] || [ -z "${DEPLOY_PATH}" ]; then
+            echo "::error::Missing required secret: FTP_SERVER, FTP_USERNAME, or DEPLOY_PATH"
+            exit 1
+          fi
+          if [ -z "${DEPLOY_KEY_FILE}" ] || [ -z "${DEPLOY_SSH_PORT}" ]; then
+            echo "::error::SSH was not prepared"
+            exit 1
+          fi
+
           rsync -az --delete \
-            -e "ssh -i ${KEY_FILE} -p ${PORT} -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes" \
+            -e "ssh -i ${DEPLOY_KEY_FILE} -p ${DEPLOY_SSH_PORT} -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes" \
             --exclude '.git/' \
             --exclude '.github/' \
             --exclude '.cursor/' \
             --exclude '.env' \
             --exclude '.env.*' \
+            --exclude 'vendor/' \
             --exclude 'compose.yaml' \
             --exclude 'Dockerfile' \
             --exclude 'docker-entrypoint.sh' \
@@ -108,6 +106,76 @@ jobs:
             ./ \
             "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}/"
 
+      - name: Install Composer packages on the server
+        env:
+          DEPLOY_HOST: ${{ secrets.FTP_SERVER }}
+          DEPLOY_USER: ${{ secrets.FTP_USERNAME }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+          DEPLOY_KEY_FILE: ${{ env.DEPLOY_KEY_FILE }}
+          DEPLOY_SSH_PORT: ${{ env.DEPLOY_SSH_PORT }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${DEPLOY_HOST}" ] || [ -z "${DEPLOY_USER}" ] || [ -z "${DEPLOY_PATH}" ]; then
+            echo "::error::Missing required secret: FTP_SERVER, FTP_USERNAME, or DEPLOY_PATH"
+            exit 1
+          fi
+          if [ -z "${DEPLOY_KEY_FILE}" ] || [ -z "${DEPLOY_SSH_PORT}" ]; then
+            echo "::error::SSH was not prepared"
+            exit 1
+          fi
+
+          ssh -T -i "${DEPLOY_KEY_FILE}" -p "${DEPLOY_SSH_PORT}" \
+            -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes \
+            "${DEPLOY_USER}@${DEPLOY_HOST}" \
+            "bash -s -- $(printf '%q' "$DEPLOY_PATH")" <<'REMOTE'
+          set -euo pipefail
+          DEPLOY_PATH="$1"
+          cd "$DEPLOY_PATH"
+
+          if ! command -v php >/dev/null 2>&1; then
+            echo "PHP 8.3 or newer is required on the server." >&2
+            exit 1
+          fi
+
+          if ! command -v composer >/dev/null 2>&1; then
+            mkdir -p "$HOME/.local/bin"
+            setup="$(mktemp)"
+            SETUP="$setup" php -r 'copy("https://getcomposer.org/installer", getenv("SETUP"));'
+            expected="$(php -r 'echo trim(file_get_contents("https://composer.github.io/installer.sig"));')"
+            actual="$(SETUP="$setup" php -r 'echo hash_file("sha384", getenv("SETUP"));')"
+            if [ "$expected" != "$actual" ]; then
+              echo "Composer installer checksum mismatch" >&2
+              rm -f "$setup"
+              exit 1
+            fi
+            php "$setup" --quiet --install-dir="$HOME/.local/bin" --filename=composer
+            rm -f "$setup"
+            export PATH="$HOME/.local/bin:$PATH"
+          fi
+
+          export COMPOSER_NO_INTERACTION=1
+          export COMPOSER_ALLOW_SUPERUSER=1
+
+          composer --version
+          composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader --no-progress --working-dir="$DEPLOY_PATH"
+          composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader --no-progress --working-dir="$DEPLOY_PATH/api"
+
+          test -f "$DEPLOY_PATH/vendor/autoload.php"
+          test -f "$DEPLOY_PATH/vendor/phpmailer/phpmailer/src/PHPMailer.php"
+          test -f "$DEPLOY_PATH/api/vendor/autoload.php"
+          composer show --working-dir="$DEPLOY_PATH" phpmailer/phpmailer
+          REMOTE
+
+      - name: Remove SSH key
+        if: always()
+        env:
+          DEPLOY_KEY_FILE: ${{ env.DEPLOY_KEY_FILE }}
+        run: |
+          if [ -n "${DEPLOY_KEY_FILE:-}" ]; then
+            rm -f "$DEPLOY_KEY_FILE"
+          fi
+
       - name: Summary
         run: |
-          echo "Deployed merge to main (${{ github.sha }}) to production."
+          echo "Deployed merge to main (${{ github.sha }}) and installed Composer packages on the server."
