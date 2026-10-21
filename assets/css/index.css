@@ -2047,6 +2047,106 @@ nav.dashboard-pagination span {
 	background: var(--background);
 }
 
+.dashboard-alert {
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+	flex-shrink: 0;
+	margin: 12px 12px 0;
+	padding: 12px 16px;
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	background: var(--background);
+	color: var(--foreground);
+	font-size: 14px;
+	text-align: left;
+}
+
+.dashboard-alert-failed {
+	--alert-tone: oklch(0.546 0.245 262.881);
+}
+
+.dashboard-alert-success {
+	--alert-tone: oklch(0.627 0.194 149.214);
+}
+
+.dashboard-alert-error {
+	--alert-tone: var(--destructive);
+}
+
+.dashboard-alert-failed,
+.dashboard-alert-success,
+.dashboard-alert-error {
+	border-color: color-mix(in oklch, var(--alert-tone) 80%, transparent);
+	background: color-mix(in oklch, var(--alert-tone) 5%, transparent);
+	color: var(--alert-tone);
+}
+
+.dashboard-alert svg {
+	width: 16px;
+	height: 16px;
+	margin-top: 2px;
+	flex-shrink: 0;
+}
+
+.dashboard-alert-body {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.dashboard-alert-title,
+.dashboard-alert-description {
+	margin: 0;
+	color: inherit;
+	line-height: 1.4;
+}
+
+.dashboard-alert-title {
+	font-weight: 500;
+}
+
+.dashboard-alert .dashboard-button {
+	flex-shrink: 0;
+	height: 32px;
+	padding: 0 10px;
+	background: var(--foreground);
+	color: var(--background);
+}
+
+.dashboard-alert-failed .dashboard-button,
+.dashboard-alert-success .dashboard-button,
+.dashboard-alert-error .dashboard-button {
+	background: var(--alert-tone);
+	color: var(--primary-foreground);
+}
+
+.dashboard-alert-actions {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-shrink: 0;
+}
+
+.dashboard-alert-actions [hidden] {
+	display: none;
+}
+
+.dashboard-alert .dashboard-button-secondary,
+.dashboard-alert-failed .dashboard-button-secondary,
+.dashboard-alert-success .dashboard-button-secondary,
+.dashboard-alert-error .dashboard-button-secondary {
+	background: transparent;
+	color: inherit;
+	border: 1px solid currentColor;
+}
+
+.dashboard-invoice-preview:has(.dashboard-alert) iframe {
+	min-height: 0;
+}
+
 .dashboard-invoice-builder {
 	align-items: stretch;
 }
@@ -2494,6 +2594,10 @@ nav.dashboard-pagination span {
 	.dashboard-invoice-preview iframe,
 	.dashboard-proforma {
 		min-height: 50vh;
+	}
+
+	.dashboard-invoice-preview:has(.dashboard-alert) iframe {
+		min-height: 0;
 	}
 
 	.dashboard-invoice-item-form {

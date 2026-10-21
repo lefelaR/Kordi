@@ -14,6 +14,7 @@ require __DIR__ . '/app/Models/Vendor.php';
 require __DIR__ . '/app/Models/Company.php';
 require __DIR__ . '/app/Models/Invoice.php';
 require __DIR__ . '/app/Models/Quotation.php';
+require __DIR__ . '/app/Models/QuotationMailer.php';
 require __DIR__ . '/app/Models/Venue.php';
 require __DIR__ . '/app/Controllers/HomeController.php';
 require __DIR__ . '/app/Controllers/AuthController.php';
@@ -61,7 +62,20 @@ if ($requestPath === '/login') {
     $database = App\Config\Database::connection();
     $quotations = new App\Models\Quotation($database);
     $companies = new App\Models\Company($database);
-    (new App\Controllers\QuotationController($auth, $quotations, $companies))->add();
+    $quotationMailer = new App\Models\QuotationMailer();
+    (new App\Controllers\QuotationController($auth, $quotations, $companies, $quotationMailer))->add();
+} elseif (preg_match('#^/quotations/(\d+)/send$#', $requestPath, $matches) === 1) {
+    $database = App\Config\Database::connection();
+    $quotations = new App\Models\Quotation($database);
+    $companies = new App\Models\Company($database);
+    $quotationMailer = new App\Models\QuotationMailer();
+    (new App\Controllers\QuotationController($auth, $quotations, $companies, $quotationMailer))->send((int) $matches[1]);
+} elseif (preg_match('#^/quotations/(\d+)/edit$#', $requestPath, $matches) === 1) {
+    $database = App\Config\Database::connection();
+    $quotations = new App\Models\Quotation($database);
+    $companies = new App\Models\Company($database);
+    $quotationMailer = new App\Models\QuotationMailer();
+    (new App\Controllers\QuotationController($auth, $quotations, $companies, $quotationMailer))->edit((int) $matches[1]);
 } elseif ($requestPath === '/contracts/add') {
     (new App\Controllers\ContractController($auth))->add();
 } elseif (preg_match('#^/invoices/(\d+)/preview$#', $requestPath, $matches) === 1) {
@@ -73,7 +87,8 @@ if ($requestPath === '/login') {
     $database = App\Config\Database::connection();
     $quotations = new App\Models\Quotation($database);
     $companies = new App\Models\Company($database);
-    (new App\Controllers\QuotationController($auth, $quotations, $companies))->preview((int) $matches[1]);
+    $quotationMailer = new App\Models\QuotationMailer();
+    (new App\Controllers\QuotationController($auth, $quotations, $companies, $quotationMailer))->preview((int) $matches[1]);
 } elseif (preg_match('#^/companies/(\d+)/(edit|delete)$#', $requestPath, $matches) === 1) {
     $companies = new App\Models\Company(App\Config\Database::connection());
     $companyController = new App\Controllers\CompanyController($auth, $companies);

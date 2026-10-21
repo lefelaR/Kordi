@@ -15,7 +15,7 @@ class Quotation
         $statement = $this->database->prepare(
             'SELECT quotations.id, quotations.company_id, quotations.quotation_number, quotations.title,'
             . ' quotations.event_label, quotations.venue, quotations.amount, quotations.quotation_date,'
-            . ' quotations.due_date, quotations.notes, quotations.created_at,'
+            . ' quotations.due_date, quotations.notes, quotations.send_status, quotations.created_at,'
             . ' companies.name AS company_name, companies.contact AS company_contact,'
             . ' companies.email AS company_email, companies.phone AS company_phone'
             . ' FROM quotations'
@@ -41,7 +41,7 @@ class Quotation
     {
         $statement = $this->database->prepare(
             'SELECT id, company_id, quotation_number, title, event_label, venue, amount,'
-            . ' quotation_date, due_date, notes, created_at'
+            . ' quotation_date, due_date, notes, send_status, created_at'
             . ' FROM quotations WHERE company_id = :company_id'
             . ' ORDER BY quotation_date DESC, id DESC'
         );
@@ -132,6 +132,70 @@ class Quotation
             $this->database->rollBack();
             throw $exception;
         }
+    }
+
+    /**
+     * @param  list<array{description: string, quantity: float, unit_price: float}>  $items
+     */
+    public function update(
+        int $id,
+        int $companyId,
+        string $quotationNumber,
+        string $title,
+        ?string $eventLabel,
+        ?string $venue,
+        ?float $amount,
+        ?string $quotationDate,
+        ?string $dueDate,
+        ?string $notes,
+        array $items = [],
+    ): void {
+        $this->database->beginTransaction();
+
+        try {
+            $statement = $this->database->prepare(
+                'UPDATE quotations SET'
+                . ' company_id = :company_id, quotation_number = :quotation_number, title = :title,'
+                . ' event_label = :event_label, venue = :venue, amount = :amount,'
+                . ' quotation_date = :quotation_date, due_date = :due_date, notes = :notes'
+                . ' WHERE id = :id'
+            );
+            $statement->execute([
+                'id' => $id,
+                'company_id' => $companyId,
+                'quotation_number' => $quotationNumber,
+                'title' => $title,
+                'event_label' => $eventLabel,
+                'venue' => $venue,
+                'amount' => $amount,
+                'quotation_date' => $quotationDate,
+                'due_date' => $dueDate,
+                'notes' => $notes,
+            ]);
+
+            $delete = $this->database->prepare('DELETE FROM quotation_items WHERE quotation_id = :quotation_id');
+            $delete->execute(['quotation_id' => $id]);
+            $this->insertItems($id, $items);
+            $this->database->commit();
+        } catch (\Throwable $exception) {
+            $this->database->rollBack();
+            throw $exception;
+        }
+    }
+
+    public function recordSendStatus(int $id, string $status): void
+    {
+        if ($status !== 'sent' && $status !== 'failed') {
+            return;
+        }
+
+        $statement = $this->database->prepare(
+            'UPDATE quotations SET send_status = :send_status WHERE id = :id'
+        );
+        $statement->execute([
+            'send_status' => $status,
+            'id' => $id,
+        ]);
     }
 
     /**
