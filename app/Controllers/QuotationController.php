@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Models\Auth;
 use App\Models\Company;
 use App\Models\Quotation;
+use App\Models\QuotationMailer;
 
 class QuotationController
 {
@@ -12,7 +13,148 @@ class QuotationController
         private Auth $auth,
         private Quotation $quotations,
         private Company $companies,
+        private QuotationMailer $mailer,
     ) {
+    }
+
+    public function send(int $id): void
+    {
+        if (!$this->auth->check()) {
+            header('Location: /login');
+            exit;
+        }
+
+        $location = '/dashboard/documents/quotations?quotation=' . $id;
+        if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+            header('Location: ' . $location);
+            exit;
+        }
+        $quotation = $this->quotations->find($id);
+        if ($quotation === null) {
+            header('Location: /dashboard/documents/quotations');
+            exit;
+        }
+
+        $email = trim((string) ($quotation['company_email'] ?? ''));
+        if ($email === '') {
+            header('Location: ' . $location);
+            exit;
+        }
+
+        $quotationNumber = (string) ($quotation['quotation_number'] ?? ('QUO-' . str_pad((string) $id, 3, '0', STR_PAD_LEFT)));
+        $sent = $this->mailer->send(
+            $email,
+            (string) ($quotation['company_name'] ?? ''),
+            $quotationNumber,
+            (string) $quotation['title'],
+        );
+        $this->quotations->recordSendStatus($id, $sent ? 'sent' : 'failed');
+
+        header('Location: ' . $location);
+        exit;
+    }
+
+    public function edit(int $id): void
+    {
+        if (!$this->auth->check()) {
+            header('Location: /login');
+            exit;
+        }
+
+        $quotation = $this->quotations->find($id);
+        if ($quotation === null || (string) ($quotation['send_status'] ?? '') === 'sent') {
+            header('Location: /dashboard/documents/quotations' . ($quotation === null ? '' : '?quotation=' . $id));
+            exit;
+        }
+
+        $companyOptions = $this->companies->all();
+        $error = '';
+        $companyId = (int) $quotation['company_id'];
+        $quotationNumber = (string) ($quotation['quotation_number'] ?? '');
+        $title = (string) $quotation['title'];
+        $eventLabel = (string) ($quotation['event_label'] ?? '');
+        $venue = (string) ($quotation['venue'] ?? '');
+        $quotationDate = substr((string) ($quotation['quotation_date'] ?? ''), 0, 10);
+        $dueDate = substr((string) ($quotation['due_date'] ?? ''), 0, 10);
+        $notes = (string) ($quotation['notes'] ?? '');
+        $items = is_array($quotation['items'] ?? null) ? $quotation['items'] : [];
+        if ($quotationDate === '') {
+            $quotationDate = date('Y-m-d');
+        }
+        if ($dueDate === '') {
+            $dueDate = date('Y-m-d', strtotime('+7 days'));
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $input = $this->readQuotationInput($companyOptions);
+            $error = $input['error'];
+            $companyId = $input['companyId'];
+            $quotationNumber = $input['quotationNumber'];
+            $title = $input['title'];
+            $eventLabel = $input['eventLabel'];
+            $venue = $input['venue'];
+            $quotationDate = $input['quotationDate'];
+            $dueDate = $input['dueDate'];
+            $notes = $input['notes'];
+            $items = $input['items'];
+
+            if ($error === '') {
+                $this->quotations->update(
+                    $id,
+                    $input['companyId'],
+                    $input['quotationNumber'],
+                    $input['title'],
+                    $input['storedEventLabel'],
+                    $input['storedVenue'],
+                    $input['storedAmount'],
+                    $input['storedQuotationDate'],
+                    $input['storedDueDate'],
+                    $input['storedNotes'],
+                    $input['items'],
+                );
+                header('Location: /dashboard/documents/quotations?quotation=' . $id);
+                exit;
+            }
+        }
+
+        $selectedCompany = [
+            'name' => 'Company',
+            'contact' => '',
+            'email' => '',
+            'phone' => '',
+        ];
+        foreach ($companyOptions as $company) {
+            if ((int) $company['id'] === $companyId) {
+                $selectedCompany = [
+                    'name' => (string) $company['name'],
+                    'contact' => (string) ($company['contact'] ?? ''),
+                    'email' => (string) ($company['email'] ?? ''),
+                    'phone' => (string) ($company['phone'] ?? ''),
+                ];
+                break;
+            }
+        }
+
+        $pageTitle = 'Edit quotation | Kordicraft Creations';
+        $currentSection = 'documents';
+        $currentDocument = 'quotations';
+        $breadcrumbs = [
+            ['label' => 'Dashboard', 'href' => '/dashboard'],
+            ['label' => 'Documents', 'href' => '/dashboard/documents'],
+            ['label' => 'Quotations', 'href' => '/dashboard/documents/quotations'],
+            ['label' => 'Edit quotation'],
+        ];
+        $formAction = '/quotations/' . $id . '/edit';
+        $heading = 'Edit quotation';
+        $summary = 'Update the details and line items on the left. The quotation updates on the right.';
+        $itemsJson = json_encode($items, JSON_THROW_ON_ERROR);
+        $extraScripts = ['/assets/js/quotation-builder.js'];
+
+        ob_start();
+        require __DIR__ . '/../Views/dashboard/documents/quotation-form.php';
+        $content = ob_get_clean();
+
+        require __DIR__ . '/../Views/layouts/dashboard.php';
     }
 
     public function add(): void

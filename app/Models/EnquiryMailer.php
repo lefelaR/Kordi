@@ -3,10 +3,13 @@
 namespace App\Models;
 
 use PHPMailer\PHPMailer\Exception;
-use PHPMailer\PHPMailer\PHPMailer;
 
 class EnquiryMailer
 {
+    public function __construct(private MailTransport $transport)
+    {
+    }
+
     public function send(
         string $name,
         string $email,
@@ -15,8 +18,7 @@ class EnquiryMailer
         string $message
     ): bool {
         try {
-            $mailer = new PHPMailer(true);
-            $mailer->isMail();
+            $mailer = $this->transport->open();
             $mailer->setFrom('website@kordicraftcreations.co.za', 'Kordicraft Creations Website');
             $mailer->addAddress('info@kordicraftcreations.co.za');
             $mailer->addReplyTo($email, $name);
