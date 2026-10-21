@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Models\Auth;
 use App\Models\DashboardApi;
 use App\Models\Invoice;
+use App\Models\Quotation;
 
 class DashboardController
 {
@@ -12,6 +13,7 @@ class DashboardController
         private Auth $auth,
         private DashboardApi $dashboardApi,
         private Invoice $invoices,
+        private Quotation $quotations,
     ) {
     }
 
@@ -60,6 +62,21 @@ class DashboardController
                         'title' => 'Invoices | Kordicraft Creations',
                         'label' => 'Invoices',
                         'view' => __DIR__ . '/../Views/dashboard/documents/invoices.php',
+                    ],
+                    'receipts' => [
+                        'title' => 'Receipts | Kordicraft Creations',
+                        'label' => 'Receipts',
+                        'view' => __DIR__ . '/../Views/dashboard/documents/receipts.php',
+                    ],
+                    'contract' => [
+                        'title' => 'Contract | Kordicraft Creations',
+                        'label' => 'Contract',
+                        'view' => __DIR__ . '/../Views/dashboard/documents/contract.php',
+                    ],
+                    'quotations' => [
+                        'title' => 'Quotations | Kordicraft Creations',
+                        'label' => 'Quotations',
+                        'view' => __DIR__ . '/../Views/dashboard/documents/quotations.php',
                     ],
                     'proofs' => [
                         'title' => 'Proofs | Kordicraft Creations',
@@ -136,6 +153,12 @@ class DashboardController
         $enquiries = [];
         $invoiceCompanies = [];
         $selectedInvoice = null;
+        $receiptCompanies = [];
+        $selectedReceipt = null;
+        $contractCompanies = [];
+        $selectedContract = null;
+        $quotationCompanies = [];
+        $selectedQuotation = null;
         $revenueTotal = 0.0;
         $monthRevenueTotal = 0.0;
         $monthDailyRevenue = [];
@@ -294,6 +317,73 @@ class DashboardController
             }
         }
 
+        if ($section === 'documents' && $subsection === 'receipts') {
+            foreach ($this->dashboardApi->companiesAll() as $company) {
+                $receiptCompanies[] = [
+                    'id' => (int) $company['id'],
+                    'name' => (string) $company['name'],
+                    'receipts' => [],
+                ];
+            }
+        }
+
+        if ($section === 'documents' && $subsection === 'contract') {
+            foreach ($this->dashboardApi->companiesAll() as $company) {
+                $contractCompanies[] = [
+                    'id' => (int) $company['id'],
+                    'name' => (string) $company['name'],
+                    'contracts' => [],
+                ];
+            }
+        }
+
+        if ($section === 'documents' && $subsection === 'quotations') {
+            $requestedQuotationId = filter_input(INPUT_GET, 'quotation', FILTER_VALIDATE_INT);
+            foreach ($this->dashboardApi->companiesAll() as $company) {
+                $companyId = (int) $company['id'];
+                $companyEmail = trim((string) ($company['email'] ?? ''));
+                $companyQuotations = [];
+                foreach ($this->quotations->forCompany($companyId) as $quotation) {
+                    $quotationId = (int) $quotation['id'];
+                    $alert = $this->quotationAlert($companyEmail, (string) ($quotation['send_status'] ?? ''));
+                    $companyQuotations[] = [
+                        'id' => $quotationId,
+                        'title' => (string) $quotation['title'],
+                        'file' => '/quotations/' . $quotationId . '/preview',
+                        'canEdit' => (string) ($quotation['send_status'] ?? '') !== 'sent',
+                        'alertVariant' => $alert['variant'],
+                        'alertTitle' => $alert['title'],
+                        'alertDescription' => $alert['description'],
+                    ];
+                }
+                $quotationCompanies[] = [
+                    'id' => $companyId,
+                    'name' => (string) $company['name'],
+                    'quotations' => $companyQuotations,
+                ];
+            }
+
+            if (is_int($requestedQuotationId)) {
+                foreach ($quotationCompanies as $company) {
+                    foreach ($company['quotations'] as $quotation) {
+                        if ($quotation['id'] === $requestedQuotationId) {
+                            $selectedQuotation = $quotation;
+                            break 2;
+                        }
+                    }
+                }
+            }
+
+            if ($selectedQuotation === null) {
+                foreach ($quotationCompanies as $company) {
+                    if ($company['quotations'] !== []) {
+                        $selectedQuotation = $company['quotations'][0];
+                        break;
+                    }
+                }
+            }
+        }
+
         $currentSection = $section;
         $currentDocument = $subsection ?? '';
 
@@ -350,6 +440,42 @@ class DashboardController
         $pages[] = $last;
 
         return $pages;
+    }
+
+    /**
+     * @return array{variant: string, title: string, description: string}
+     */
+    private function quotationAlert(string $email, string $sendStatus): array
+    {
+        if ($email === '') {
+            return [
+                'variant' => 'dashboard-alert-error',
+                'title' => 'No email',
+                'description' => 'There is no email address on this contact.',
+            ];
+        }
+
+        if ($sendStatus === 'sent') {
+            return [
+                'variant' => 'dashboard-alert-success',
+                'title' => 'Sent',
+                'description' => 'This quotation was sent.',
+            ];
+        }
+
+        if ($sendStatus === 'failed') {
+            return [
+                'variant' => 'dashboard-alert-failed',
+                'title' => 'Send failed',
+                'description' => 'The last attempt to send this quotation failed.',
+            ];
+        }
+
+        return [
+            'variant' => '',
+            'title' => 'Not sent',
+            'description' => 'This quotation has not been sent.',
+        ];
     }
 
     private function venuesListLocation(int $page, string $search): string

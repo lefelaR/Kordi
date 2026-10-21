@@ -35,8 +35,13 @@
                                                 <button
                                                     type="button"
                                                     class="dashboard-invoice-item<?= $isSelected ? ' is-active' : '' ?>"
+                                                    data-quotation-id="<?= (int) $quotation['id'] ?>"
                                                     data-quotation-src="<?= htmlspecialchars($quotation['file'], ENT_QUOTES, 'UTF-8') ?>"
                                                     data-quotation-title="<?= htmlspecialchars($quotation['title'], ENT_QUOTES, 'UTF-8') ?>"
+                                                    data-quotation-alert-variant="<?= htmlspecialchars($quotation['alertVariant'], ENT_QUOTES, 'UTF-8') ?>"
+                                                    data-quotation-alert-title="<?= htmlspecialchars($quotation['alertTitle'], ENT_QUOTES, 'UTF-8') ?>"
+                                                    data-quotation-alert-description="<?= htmlspecialchars($quotation['alertDescription'], ENT_QUOTES, 'UTF-8') ?>"
+                                                    data-quotation-can-edit="<?= $quotation['canEdit'] ? '1' : '0' ?>"
                                                     aria-pressed="<?= $isSelected ? 'true' : 'false' ?>"
                                                 >
                                                     <?= htmlspecialchars($quotation['title'], ENT_QUOTES, 'UTF-8') ?>
@@ -54,6 +59,35 @@
                 <?php if ($selectedQuotation === null): ?>
                     <p class="dashboard-empty dashboard-invoice-preview-empty">Select a quotation to preview.</p>
                 <?php else: ?>
+                    <div class="dashboard-alert<?= $selectedQuotation['alertVariant'] !== '' ? ' ' . htmlspecialchars($selectedQuotation['alertVariant'], ENT_QUOTES, 'UTF-8') : '' ?>" data-quotation-alert role="alert">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3" />
+                            <path d="M12 9v4" />
+                            <path d="M12 17h.01" />
+                        </svg>
+                        <div class="dashboard-alert-body">
+                            <p class="dashboard-alert-title"><?= htmlspecialchars($selectedQuotation['alertTitle'], ENT_QUOTES, 'UTF-8') ?></p>
+                            <p class="dashboard-alert-description"><?= htmlspecialchars($selectedQuotation['alertDescription'], ENT_QUOTES, 'UTF-8') ?></p>
+                        </div>
+                        <div class="dashboard-alert-actions">
+                            <a class="dashboard-button dashboard-button-secondary dashboard-button-with-icon" href="/quotations/<?= (int) $selectedQuotation['id'] ?>/edit" data-quotation-edit<?= $selectedQuotation['canEdit'] ? '' : ' hidden' ?>>
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M12 20h9" />
+                                    <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                                </svg>
+                                Edit
+                            </a>
+                            <form method="post" action="/quotations/<?= (int) $selectedQuotation['id'] ?>/send" data-quotation-send>
+                                <button class="dashboard-button dashboard-button-with-icon" type="submit">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                        <path d="m22 2-7 20-4-9-9-4Z" />
+                                        <path d="M22 2 11 13" />
+                                    </svg>
+                                    Send
+                                </button>
+                            </form>
+                        </div>
+                    </div>
                     <iframe
                         data-quotation-frame
                         src="<?= htmlspecialchars($selectedQuotation['file'], ENT_QUOTES, 'UTF-8') ?>"
@@ -81,12 +115,48 @@
                             return;
                         }
 
+                        const quotationId = item.getAttribute('data-quotation-id') || '';
+                        const alertVariant = item.getAttribute('data-quotation-alert-variant') || '';
+                        const alertTitle = item.getAttribute('data-quotation-alert-title') || '';
+                        const alertDescription = item.getAttribute('data-quotation-alert-description') || '';
+                        const canEdit = item.getAttribute('data-quotation-can-edit') === '1';
+
                         let frame = preview.querySelector('[data-quotation-frame]');
                         if (!frame) {
                             preview.innerHTML = '';
+                            const alert = document.createElement('div');
+                            alert.className = 'dashboard-alert';
+                            alert.setAttribute('data-quotation-alert', '');
+                            alert.setAttribute('role', 'alert');
+                            alert.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3" /><path d="M12 9v4" /><path d="M12 17h.01" /></svg><div class="dashboard-alert-body"><p class="dashboard-alert-title"></p><p class="dashboard-alert-description"></p></div><div class="dashboard-alert-actions"><a class="dashboard-button dashboard-button-secondary dashboard-button-with-icon" data-quotation-edit href="/quotations/0/edit"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>Edit</a><form method="post" data-quotation-send><button class="dashboard-button dashboard-button-with-icon" type="submit"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4Z" /><path d="M22 2 11 13" /></svg>Send</button></form></div>';
+                            preview.appendChild(alert);
                             frame = document.createElement('iframe');
                             frame.setAttribute('data-quotation-frame', '');
                             preview.appendChild(frame);
+                        }
+
+                        const alert = preview.querySelector('[data-quotation-alert]');
+                        if (alert) {
+                            alert.className = 'dashboard-alert' + (alertVariant !== '' ? ' ' + alertVariant : '');
+                            const titleNode = alert.querySelector('.dashboard-alert-title');
+                            const descriptionNode = alert.querySelector('.dashboard-alert-description');
+                            const form = alert.querySelector('[data-quotation-send]');
+                            if (titleNode) {
+                                titleNode.textContent = alertTitle;
+                            }
+                            if (descriptionNode) {
+                                descriptionNode.textContent = alertDescription;
+                            }
+                            if (form && quotationId !== '') {
+                                form.setAttribute('action', '/quotations/' + quotationId + '/send');
+                            }
+                            const edit = alert.querySelector('[data-quotation-edit]');
+                            if (edit) {
+                                edit.hidden = !canEdit;
+                                if (quotationId !== '') {
+                                    edit.setAttribute('href', '/quotations/' + quotationId + '/edit');
+                                }
+                            }
                         }
 
                         frame.setAttribute('src', src);
