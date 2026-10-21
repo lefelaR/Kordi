@@ -1177,6 +1177,92 @@ nav.dashboard-breadcrumb .dashboard-breadcrumb-separator svg {
 	cursor: not-allowed;
 }
 
+.dashboard-send-modal {
+	position: fixed;
+	inset: 0;
+	width: min(28rem, calc(100vw - 2rem));
+	height: fit-content;
+	max-width: calc(100vw - 2rem);
+	max-height: calc(100vh - 2rem);
+	margin: auto;
+	padding: 0;
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	background: var(--card);
+	color: var(--foreground);
+}
+
+.dashboard-send-modal::backdrop {
+	background: oklch(0.141 0.005 285.823 / 0.45);
+}
+
+.dashboard-send-modal-card {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	padding: 16px;
+	background: var(--card-gradient);
+	border-radius: var(--radius);
+}
+
+.dashboard-send-modal-card header {
+	display: block;
+	position: static;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	z-index: auto;
+}
+
+.dashboard-send-modal-card h2 {
+	margin: 0;
+	font-size: 18px;
+	font-weight: 600;
+}
+
+.dashboard-send-modal-card p {
+	margin: 4px 0 0;
+	color: var(--muted-foreground);
+	font-size: 13px;
+	font-weight: 400;
+}
+
+.dashboard-send-modal-card label {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	font-size: 14px;
+	font-weight: 500;
+}
+
+.dashboard-send-modal-card input {
+	padding: 8px 12px;
+	border: 1px solid var(--input);
+	border-radius: var(--radius);
+	background: var(--background);
+	color: var(--foreground);
+	font: inherit;
+	font-size: 14px;
+	font-weight: 400;
+}
+
+.dashboard-send-modal-card input:focus {
+	outline: 2px solid var(--ring);
+	outline-offset: 1px;
+}
+
+.dashboard-send-modal-actions {
+	display: flex;
+	justify-content: flex-end;
+	align-items: center;
+	gap: 8px;
+}
+
+.dashboard-send-modal-actions .dashboard-button:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
 .dashboard-venues-map-panel {
 	overflow: hidden;
 }

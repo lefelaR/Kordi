@@ -345,12 +345,14 @@ class DashboardController
                 $companyQuotations = [];
                 foreach ($this->quotations->forCompany($companyId) as $quotation) {
                     $quotationId = (int) $quotation['id'];
-                    $alert = $this->quotationAlert($companyEmail, (string) ($quotation['send_status'] ?? ''));
+                    $sendStatus = (string) ($quotation['send_status'] ?? '');
+                    $alert = $this->quotationAlert($companyEmail, $sendStatus);
                     $companyQuotations[] = [
                         'id' => $quotationId,
                         'title' => (string) $quotation['title'],
                         'file' => '/quotations/' . $quotationId . '/preview',
-                        'canEdit' => (string) ($quotation['send_status'] ?? '') !== 'sent',
+                        'email' => $companyEmail,
+                        'canEdit' => $sendStatus !== 'sent',
                         'alertVariant' => $alert['variant'],
                         'alertTitle' => $alert['title'],
                         'alertDescription' => $alert['description'],
