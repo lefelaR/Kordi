@@ -5,7 +5,6 @@ namespace App\Controllers;
 use App\Models\Auth;
 use App\Models\DashboardApi;
 use App\Models\Invoice;
-use App\Models\Quotation;
 
 class DashboardController
 {
@@ -13,7 +12,6 @@ class DashboardController
         private Auth $auth,
         private DashboardApi $dashboardApi,
         private Invoice $invoices,
-        private Quotation $quotations,
     ) {
     }
 
@@ -62,21 +60,6 @@ class DashboardController
                         'title' => 'Invoices | Kordicraft Creations',
                         'label' => 'Invoices',
                         'view' => __DIR__ . '/../Views/dashboard/documents/invoices.php',
-                    ],
-                    'receipts' => [
-                        'title' => 'Receipts | Kordicraft Creations',
-                        'label' => 'Receipts',
-                        'view' => __DIR__ . '/../Views/dashboard/documents/receipts.php',
-                    ],
-                    'contract' => [
-                        'title' => 'Contract | Kordicraft Creations',
-                        'label' => 'Contract',
-                        'view' => __DIR__ . '/../Views/dashboard/documents/contract.php',
-                    ],
-                    'quotations' => [
-                        'title' => 'Quotations | Kordicraft Creations',
-                        'label' => 'Quotations',
-                        'view' => __DIR__ . '/../Views/dashboard/documents/quotations.php',
                     ],
                     'proofs' => [
                         'title' => 'Proofs | Kordicraft Creations',
@@ -153,12 +136,6 @@ class DashboardController
         $enquiries = [];
         $invoiceCompanies = [];
         $selectedInvoice = null;
-        $receiptCompanies = [];
-        $selectedReceipt = null;
-        $contractCompanies = [];
-        $selectedContract = null;
-        $quotationCompanies = [];
-        $selectedQuotation = null;
         $revenueTotal = 0.0;
         $monthRevenueTotal = 0.0;
         $monthDailyRevenue = [];
@@ -312,53 +289,6 @@ class DashboardController
             foreach ($invoiceCompanies as $company) {
                 if ($company['invoices'] !== []) {
                     $selectedInvoice = $company['invoices'][0];
-                    break;
-                }
-            }
-        }
-
-        if ($section === 'documents' && $subsection === 'receipts') {
-            foreach ($this->dashboardApi->companiesAll() as $company) {
-                $receiptCompanies[] = [
-                    'id' => (int) $company['id'],
-                    'name' => (string) $company['name'],
-                    'receipts' => [],
-                ];
-            }
-        }
-
-        if ($section === 'documents' && $subsection === 'contract') {
-            foreach ($this->dashboardApi->companiesAll() as $company) {
-                $contractCompanies[] = [
-                    'id' => (int) $company['id'],
-                    'name' => (string) $company['name'],
-                    'contracts' => [],
-                ];
-            }
-        }
-
-        if ($section === 'documents' && $subsection === 'quotations') {
-            foreach ($this->dashboardApi->companiesAll() as $company) {
-                $companyId = (int) $company['id'];
-                $companyQuotations = [];
-                foreach ($this->quotations->forCompany($companyId) as $quotation) {
-                    $quotationId = (int) $quotation['id'];
-                    $companyQuotations[] = [
-                        'id' => $quotationId,
-                        'title' => (string) $quotation['title'],
-                        'file' => '/quotations/' . $quotationId . '/preview',
-                    ];
-                }
-                $quotationCompanies[] = [
-                    'id' => $companyId,
-                    'name' => (string) $company['name'],
-                    'quotations' => $companyQuotations,
-                ];
-            }
-
-            foreach ($quotationCompanies as $company) {
-                if ($company['quotations'] !== []) {
-                    $selectedQuotation = $company['quotations'][0];
                     break;
                 }
             }
