@@ -1014,6 +1014,9 @@ nav.dashboard-breadcrumb .dashboard-breadcrumb-separator svg {
 
 .dashboard-location-field input {
 	width: 100%;
+}
+
+.dashboard-location-field:has(.dashboard-location-picker) input {
 	padding-right: 40px;
 }
 
