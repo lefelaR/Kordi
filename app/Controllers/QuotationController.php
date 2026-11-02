@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Models\Auth;
 use App\Models\Company;
+use App\Models\Invoice;
 use App\Models\Quotation;
 use App\Models\QuotationMailer;
 
@@ -14,7 +15,42 @@ class QuotationController
         private Quotation $quotations,
         private Company $companies,
         private QuotationMailer $mailer,
+        private Invoice $invoices,
     ) {
+    }
+
+    public function approve(int $id): void
+    {
+        if (!$this->auth->check()) {
+            header('Location: /login');
+            exit;
+        }
+
+        $location = '/dashboard/documents/quotations?quotation=' . $id;
+        if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+            header('Location: ' . $location);
+            exit;
+        }
+
+        $quotation = $this->quotations->find($id);
+        if ($quotation === null) {
+            header('Location: /dashboard/documents/quotations');
+            exit;
+        }
+
+        if ((string) ($quotation['send_status'] ?? '') !== 'sent') {
+            header('Location: ' . $location);
+            exit;
+        }
+
+        if ((string) ($quotation['status'] ?? '') !== 'approved' && $this->invoices->depositIdForQuotation($id) === null) {
+            $this->invoices->createDeposit($quotation);
+        }
+
+        $this->quotations->recordApproval($id);
+
+        header('Location: ' . $location);
+        exit;
     }
 
     public function send(int $id): void
@@ -47,6 +83,7 @@ class QuotationController
             (string) ($quotation['company_name'] ?? ''),
             $quotationNumber,
             (string) $quotation['title'],
+            $this->quotationDocument($quotation),
         );
         $this->quotations->recordSendStatus($id, $sent ? 'sent' : 'failed');
 
@@ -264,6 +301,32 @@ class QuotationController
         }
 
         require __DIR__ . '/../Views/dashboard/documents/quotation-preview.php';
+    }
+
+    /**
+     * @param  array<string, mixed>  $quotation
+     */
+    private function quotationDocument(array $quotation): string
+    {
+        ob_start();
+        require __DIR__ . '/../Views/dashboard/documents/quotation-preview.php';
+        $html = ob_get_clean();
+        if (!is_string($html)) {
+            return '';
+        }
+
+        $logo = dirname(__DIR__, 2) . '/images/logo.jpeg';
+        if (!is_file($logo)) {
+            return $html;
+        }
+
+        $encoded = base64_encode((string) file_get_contents($logo));
+
+        return str_replace(
+            'src="/images/logo.jpeg"',
+            'src="data:image/jpeg;base64,' . $encoded . '"',
+            $html
+        );
     }
 
     /**

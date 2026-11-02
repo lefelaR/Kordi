@@ -164,17 +164,29 @@ if ($eventLabel !== '' && $venue !== '') {
             line-height: 1.5;
         }
         .total {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
+            width: 100%;
             margin-top: 14px;
-            padding: 12px 14px;
-            border-top: 1px solid #e4e4e7;
+            border-collapse: collapse;
             background: #f4f4f5;
             font-size: 15px;
             font-weight: 700;
             letter-spacing: 0.04em;
             text-transform: uppercase;
+        }
+        .total td {
+            padding: 12px 14px;
+            border-top: 1px solid #e4e4e7;
+            border-bottom: 0;
+            background: #f4f4f5;
+        }
+        .total td:first-child {
+            text-align: left;
+        }
+        .total td:last-child {
+            width: 1%;
+            padding-left: 16px;
+            text-align: right;
+            white-space: nowrap;
         }
         .bank {
             list-style: none;
@@ -278,10 +290,12 @@ if ($eventLabel !== '' && $venue !== '') {
             ENT_QUOTES,
             'UTF-8'
         ) ?></p>
-        <div class="total">
-            <span>Total due</span>
-            <strong><?= htmlspecialchars($money($total), ENT_QUOTES, 'UTF-8') ?></strong>
-        </div>
+        <table class="total">
+            <tr>
+                <td>Total due</td>
+                <td><?= htmlspecialchars($money($total), ENT_QUOTES, 'UTF-8') ?></td>
+            </tr>
+        </table>
     </section>
 
     <section class="section">

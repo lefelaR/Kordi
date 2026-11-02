@@ -65,10 +65,10 @@
                 </a>
             </div>
         </div>
-        <label class="dashboard-form-details">
-            Details
-            <textarea name="details" rows="12" maxlength="5000"><?= htmlspecialchars($details, ENT_QUOTES, 'UTF-8') ?></textarea>
-        </label>
+        <div class="dashboard-form-details">
+            <span id="venue-details-label">Details</span>
+            <textarea id="venue-details" name="details" rows="12" data-wysiwyg aria-labelledby="venue-details-label" placeholder="Facilities, access, catering, and anything the team should know."><?= htmlspecialchars($details, ENT_QUOTES, 'UTF-8') ?></textarea>
+        </div>
     </form>
 
     <div class="dashboard-panel dashboard-venues-map-panel">
