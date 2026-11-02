@@ -19,6 +19,13 @@ $formatDate = static function (?string $value): string {
     return $date instanceof \DateTimeImmutable ? $date->format('j F Y') : $value;
 };
 $invoiceNumber = (string) ($invoice['invoice_number'] ?? ('INV-' . str_pad((string) $invoice['id'], 3, '0', STR_PAD_LEFT)));
+$depositPercentage = isset($invoice['percentage']) && $invoice['percentage'] !== null && $invoice['percentage'] !== ''
+    ? (float) $invoice['percentage']
+    : null;
+$depositPercentageLabel = $depositPercentage === null
+    ? ''
+    : rtrim(rtrim(number_format($depositPercentage, 2, '.', ''), '0'), '.');
+$sourceQuotationNumber = trim((string) ($invoice['quotation_number'] ?? ''));
 $eventLabel = trim((string) ($invoice['event_label'] ?? ''));
 $venue = trim((string) ($invoice['venue'] ?? ''));
 $attParts = [];
@@ -298,7 +305,11 @@ if ($eventLabel !== '' && $venue !== '') {
     <section class="section">
         <h3>Terms &amp; conditions</h3>
         <ol class="terms">
-            <li>50% deposit (<?= htmlspecialchars($money($deposit), ENT_QUOTES, 'UTF-8') ?>) secures venue and suppliers. Non-refundable if cancelled 30 days or less before the event.</li>
+            <?php if ($depositPercentage !== null): ?>
+                <li>This invoice is the <?= htmlspecialchars($depositPercentageLabel, ENT_QUOTES, 'UTF-8') ?>% deposit<?= $sourceQuotationNumber !== '' ? ' for quotation ' . htmlspecialchars($sourceQuotationNumber, ENT_QUOTES, 'UTF-8') : '' ?>. Non-refundable if cancelled 30 days or less before the event.</li>
+            <?php else: ?>
+                <li>50% deposit (<?= htmlspecialchars($money($deposit), ENT_QUOTES, 'UTF-8') ?>) secures venue and suppliers. Non-refundable if cancelled 30 days or less before the event.</li>
+            <?php endif; ?>
             <li>Full balance must be paid 7 days before the event.</li>
             <li>Bar Tab overrun is subject to actual usage and payable on the day of the event.</li>
             <li><?= htmlspecialchars($termEvent, ENT_QUOTES, 'UTF-8') ?></li>

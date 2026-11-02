@@ -15,7 +15,7 @@ class Quotation
         $statement = $this->database->prepare(
             'SELECT quotations.id, quotations.company_id, quotations.quotation_number, quotations.title,'
             . ' quotations.event_label, quotations.venue, quotations.amount, quotations.quotation_date,'
-            . ' quotations.due_date, quotations.notes, quotations.send_status, quotations.created_at,'
+            . ' quotations.due_date, quotations.notes, quotations.send_status, quotations.status, quotations.created_at,'
             . ' companies.name AS company_name, companies.contact AS company_contact,'
             . ' companies.email AS company_email, companies.phone AS company_phone'
             . ' FROM quotations'
@@ -41,7 +41,8 @@ class Quotation
     {
         $statement = $this->database->prepare(
             'SELECT id, company_id, quotation_number, title, event_label, venue, amount,'
-            . ' quotation_date, due_date, notes, send_status, created_at'
+            . ' quotation_date, due_date, notes, send_status, status, created_at,'
+            . ' (SELECT MIN(invoices.id) FROM invoices WHERE invoices.quotation_id = quotations.id) AS invoice_id'
             . ' FROM quotations WHERE company_id = :company_id'
             . ' ORDER BY quotation_date DESC, id DESC'
         );
@@ -196,6 +197,15 @@ class Quotation
             'send_status' => $status,
             'id' => $id,
         ]);
+    }
+
+    public function recordApproval(int $id): void
+    {
+        $statement = $this->database->prepare(
+            "UPDATE quotations SET status = 'approved'"
+            . " WHERE id = :id AND send_status = 'sent' AND status <> 'approved'"
+        );
+        $statement->execute(['id' => $id]);
     }
 
     /**

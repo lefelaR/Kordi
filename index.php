@@ -26,6 +26,7 @@ require __DIR__ . '/app/Controllers/CompanyController.php';
 require __DIR__ . '/app/Controllers/InvoiceController.php';
 require __DIR__ . '/app/Controllers/QuotationController.php';
 require __DIR__ . '/app/Controllers/ContractController.php';
+require __DIR__ . '/app/Controllers/ReceiptController.php';
 require __DIR__ . '/app/Controllers/VenueController.php';
 
 $apiBaseUrl = $_ENV['API_BASE_URL'] ?? getenv('API_BASE_URL') ?: 'http://api:8000/api';
@@ -65,21 +66,33 @@ if ($requestPath === '/login') {
     $quotations = new App\Models\Quotation($database);
     $companies = new App\Models\Company($database);
     $quotationMailer = new App\Models\QuotationMailer($mailTransport);
-    (new App\Controllers\QuotationController($auth, $quotations, $companies, $quotationMailer))->add();
+    $invoices = new App\Models\Invoice($database);
+    (new App\Controllers\QuotationController($auth, $quotations, $companies, $quotationMailer, $invoices))->add();
 } elseif (preg_match('#^/quotations/(\d+)/send$#', $requestPath, $matches) === 1) {
     $database = App\Config\Database::connection();
     $quotations = new App\Models\Quotation($database);
     $companies = new App\Models\Company($database);
     $quotationMailer = new App\Models\QuotationMailer($mailTransport);
-    (new App\Controllers\QuotationController($auth, $quotations, $companies, $quotationMailer))->send((int) $matches[1]);
+    $invoices = new App\Models\Invoice($database);
+    (new App\Controllers\QuotationController($auth, $quotations, $companies, $quotationMailer, $invoices))->send((int) $matches[1]);
+} elseif (preg_match('#^/quotations/(\d+)/approve$#', $requestPath, $matches) === 1) {
+    $database = App\Config\Database::connection();
+    $quotations = new App\Models\Quotation($database);
+    $companies = new App\Models\Company($database);
+    $quotationMailer = new App\Models\QuotationMailer($mailTransport);
+    $invoices = new App\Models\Invoice($database);
+    (new App\Controllers\QuotationController($auth, $quotations, $companies, $quotationMailer, $invoices))->approve((int) $matches[1]);
 } elseif (preg_match('#^/quotations/(\d+)/edit$#', $requestPath, $matches) === 1) {
     $database = App\Config\Database::connection();
     $quotations = new App\Models\Quotation($database);
     $companies = new App\Models\Company($database);
     $quotationMailer = new App\Models\QuotationMailer($mailTransport);
-    (new App\Controllers\QuotationController($auth, $quotations, $companies, $quotationMailer))->edit((int) $matches[1]);
+    $invoices = new App\Models\Invoice($database);
+    (new App\Controllers\QuotationController($auth, $quotations, $companies, $quotationMailer, $invoices))->edit((int) $matches[1]);
 } elseif ($requestPath === '/contracts/add') {
     (new App\Controllers\ContractController($auth))->add();
+} elseif ($requestPath === '/receipts/add') {
+    (new App\Controllers\ReceiptController($auth))->add();
 } elseif (preg_match('#^/invoices/(\d+)/preview$#', $requestPath, $matches) === 1) {
     $database = App\Config\Database::connection();
     $invoices = new App\Models\Invoice($database);
@@ -90,7 +103,8 @@ if ($requestPath === '/login') {
     $quotations = new App\Models\Quotation($database);
     $companies = new App\Models\Company($database);
     $quotationMailer = new App\Models\QuotationMailer($mailTransport);
-    (new App\Controllers\QuotationController($auth, $quotations, $companies, $quotationMailer))->preview((int) $matches[1]);
+    $invoices = new App\Models\Invoice($database);
+    (new App\Controllers\QuotationController($auth, $quotations, $companies, $quotationMailer, $invoices))->preview((int) $matches[1]);
 } elseif (preg_match('#^/companies/(\d+)/(edit|delete)$#', $requestPath, $matches) === 1) {
     $companies = new App\Models\Company(App\Config\Database::connection());
     $companyController = new App\Controllers\CompanyController($auth, $companies);
