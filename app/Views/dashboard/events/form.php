@@ -6,7 +6,7 @@
     <?php if ($error !== ''): ?>
         <p class="dashboard-form-error"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></p>
     <?php endif; ?>
-    <form class="dashboard-form dashboard-form-with-details" method="post" action="<?= htmlspecialchars($formAction, ENT_QUOTES, 'UTF-8') ?>">
+    <form class="dashboard-form dashboard-form-with-details" method="post" action="<?= htmlspecialchars($formAction, ENT_QUOTES, 'UTF-8') ?>" data-event-form>
         <input type="hidden" name="page" value="<?= (int) ($eventPage ?? 1) ?>">
         <div class="dashboard-form-fields dashboard-form-card">
             <label>
@@ -19,7 +19,10 @@
             </label>
             <label>
                 Location
-                <input type="text" name="location" maxlength="255" value="<?= htmlspecialchars($location ?? '', ENT_QUOTES, 'UTF-8') ?>">
+                <div class="dashboard-location-field">
+                    <input type="text" name="location" maxlength="255" value="<?= htmlspecialchars($location ?? '', ENT_QUOTES, 'UTF-8') ?>" autocomplete="off" role="combobox" aria-autocomplete="list" aria-controls="event-location-suggestions" aria-expanded="false" data-event-location-input>
+                    <ul class="dashboard-location-suggestions" id="event-location-suggestions" data-event-location-suggestions role="listbox" hidden></ul>
+                </div>
             </label>
             <label>
                 Date

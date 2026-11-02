@@ -60,8 +60,12 @@ jobs:
             exit 1
           fi
 
-          PORT="${DEPLOY_PORT:-22}"
-          echo "Using SSH port ${PORT}. A custom DEPLOY_PORT secret overrides the default of 22."
+          PORT="$(printf '%s' "${DEPLOY_PORT:-22}" | tr -d '[:space:]')"
+          if [ -z "$PORT" ]; then
+            PORT=22
+          fi
+          HOST="$(printf '%s' "$DEPLOY_HOST" | tr -d '[:space:]')"
+          echo "Using SSH port ${PORT}. Set the DEPLOY_PORT secret when the server does not listen on port 22."
 
           echo "Writing the deploy key to a temporary file on the runner and restricting it to this job."
           KEY_FILE="${RUNNER_TEMP}/deploy_key"
@@ -71,7 +75,14 @@ jobs:
           echo "Recording the production server host key so later SSH commands can verify the server."
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
-          ssh-keyscan -p "$PORT" -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+          if ! ssh-keyscan -T 15 -p "$PORT" -H "$HOST" >> ~/.ssh/known_hosts; then
+            if [ -z "$(printf '%s' "${DEPLOY_PORT:-}" | tr -d '[:space:]')" ]; then
+              echo "::error::Could not collect an SSH host key on port 22. The DEPLOY_PORT secret is not set. cPanel usually serves SSH on a custom port — add that port as the DEPLOY_PORT secret (cPanel → Security → SSH Access)."
+            else
+              echo "::error::Could not collect an SSH host key on port ${PORT}. Check that FTP_SERVER and DEPLOY_PORT match the host and SSH port, and that the server accepts connections from GitHub-hosted runners."
+            fi
+            exit 1
+          fi
           echo "The production server host key is trusted for this job."
 
           echo "DEPLOY_KEY_FILE=${KEY_FILE}" >> "$GITHUB_ENV"
