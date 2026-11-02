@@ -1,47 +1,20 @@
-name: Deploy to cPanel
-
+name: Deploy to kordicraftcreations
 on:
   push:
-    branches:
-      - main # change to master if you use master
-
+    branches: [main]
 jobs:
   deploy:
-    name: Deploy via FTP
     runs-on: ubuntu-latest
-    
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      # UNCOMMENT IF YOU HAVE A BUILD STEP (Node / Vite / React)
-      # - name: Setup Node
-      #   uses: actions/setup-node@v4
-      #   with:
-      #     node-version: 20
-      # - name: Install and Build
-      #   run: |
-      #     npm ci
-      #     npm run build
-
-      # UNCOMMENT IF LARAVEL / PHP COMPOSER PROJECT
-      # - name: Install Composer deps
-      #   run: composer install --no-dev --optimize-autoloader --no-interaction
-
-      - name: FTP Deploy to cPanel
+      - uses: actions/checkout@v4
+      - name: Deploy to anissa.aserv.co.za
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          server: ${{ secrets.FTP_SERVER }}
+          server: anissa.aserv.co.za
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          # For cPanel, this is usually public_html/ or public_html/yourdomain.com/
+          port: 21
+          protocol: ftps
+          security: loose
           server-dir: public_html/
-          # What to deploy
-          local-dir: ./ 
-          # Exclude these
-          exclude: |
-            **/.git*
-            **/.github/**
-            **/node_modules/**
-            **/.env
-            README.md
+          log-level: verbose
