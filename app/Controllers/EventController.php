@@ -87,6 +87,7 @@ class EventController
         $formAction = '/events/add';
         $heading = 'Add event';
         $summary = 'Save an event to the events list.';
+        $extraScripts = ['/assets/js/event-location.js'];
 
         ob_start();
         require __DIR__ . '/../Views/dashboard/events/form.php';
@@ -201,6 +202,7 @@ class EventController
         $heading = 'Edit event';
         $summary = 'Update this event.';
         $actionIcons = true;
+        $extraScripts = ['/assets/js/event-location.js'];
 
         ob_start();
         require __DIR__ . '/../Views/dashboard/events/form.php';
