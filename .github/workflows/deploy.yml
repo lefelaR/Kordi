@@ -43,10 +43,10 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     steps:
-      - name: Checkout
+      - name: Check out the merged commit
         uses: actions/checkout@v4
 
-      - name: Prepare SSH
+      - name: Prepare the SSH key and trust the production server
         env:
           DEPLOY_HOST: ${{ secrets.FTP_SERVER }}
           DEPLOY_SSH_KEY: ${{ secrets.CPANEL_SSH_KEY }}
@@ -54,24 +54,31 @@ jobs:
         run: |
           set -euo pipefail
 
+          echo "Checking that the production host and SSH private key are configured."
           if [ -z "${DEPLOY_HOST}" ] || [ -z "${DEPLOY_SSH_KEY}" ]; then
             echo "::error::Missing required secret: FTP_SERVER or CPANEL_SSH_KEY"
             exit 1
           fi
 
           PORT="${DEPLOY_PORT:-22}"
+          echo "Using SSH port ${PORT}. A custom DEPLOY_PORT secret overrides the default of 22."
+
+          echo "Writing the deploy key to a temporary file on the runner and restricting it to this job."
           KEY_FILE="${RUNNER_TEMP}/deploy_key"
           printf '%s\n' "$DEPLOY_SSH_KEY" > "$KEY_FILE"
           chmod 600 "$KEY_FILE"
 
+          echo "Recording the production server host key so later SSH commands can verify the server."
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
           ssh-keyscan -p "$PORT" -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+          echo "The production server host key is trusted for this job."
 
           echo "DEPLOY_KEY_FILE=${KEY_FILE}" >> "$GITHUB_ENV"
           echo "DEPLOY_SSH_PORT=${PORT}" >> "$GITHUB_ENV"
+          echo "SSH is ready. The private key stays on the runner and is removed at the end of the job."
 
-      - name: Deploy with rsync over SSH
+      - name: Copy the site files to the production server
         env:
           DEPLOY_HOST: ${{ secrets.FTP_SERVER }}
           DEPLOY_USER: ${{ secrets.FTP_USERNAME }}
@@ -81,16 +88,22 @@ jobs:
         run: |
           set -euo pipefail
 
+          echo "Checking that the production host, SSH user, and deploy directory are configured."
           if [ -z "${DEPLOY_HOST}" ] || [ -z "${DEPLOY_USER}" ] || [ -z "${DEPLOY_PATH}" ]; then
             echo "::error::Missing required secret: FTP_SERVER, FTP_USERNAME, or DEPLOY_PATH"
             exit 1
           fi
+          echo "Checking that the SSH key and port were prepared in the previous step."
           if [ -z "${DEPLOY_KEY_FILE}" ] || [ -z "${DEPLOY_SSH_PORT}" ]; then
             echo "::error::SSH was not prepared"
             exit 1
           fi
 
+          echo "Copying this commit to ${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}."
+          echo "Files on the server that are not in this commit will be removed."
+          echo "Leaving out Git metadata, GitHub workflows, editor files, environment files, installed packages, Docker files, scripts, and database init files."
           rsync -az --delete \
+            --info=stats2 \
             -e "ssh -i ${DEPLOY_KEY_FILE} -p ${DEPLOY_SSH_PORT} -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes" \
             --exclude '.git/' \
             --exclude '.github/' \
@@ -105,8 +118,9 @@ jobs:
             --exclude 'database/init/' \
             ./ \
             "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}/"
+          echo "The production directory now matches this commit, except for the files listed above."
 
-      - name: Install Composer packages on the server
+      - name: Install production Composer packages on the server
         env:
           DEPLOY_HOST: ${{ secrets.FTP_SERVER }}
           DEPLOY_USER: ${{ secrets.FTP_USERNAME }}
@@ -116,15 +130,18 @@ jobs:
         run: |
           set -euo pipefail
 
+          echo "Checking that the production host, SSH user, and deploy directory are configured."
           if [ -z "${DEPLOY_HOST}" ] || [ -z "${DEPLOY_USER}" ] || [ -z "${DEPLOY_PATH}" ]; then
             echo "::error::Missing required secret: FTP_SERVER, FTP_USERNAME, or DEPLOY_PATH"
             exit 1
           fi
+          echo "Checking that the SSH key and port were prepared before connecting."
           if [ -z "${DEPLOY_KEY_FILE}" ] || [ -z "${DEPLOY_SSH_PORT}" ]; then
             echo "::error::SSH was not prepared"
             exit 1
           fi
 
+          echo "Connecting to ${DEPLOY_USER}@${DEPLOY_HOST} to install PHP packages in ${DEPLOY_PATH} and ${DEPLOY_PATH}/api."
           ssh -T -i "${DEPLOY_KEY_FILE}" -p "${DEPLOY_SSH_PORT}" \
             -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes \
             "${DEPLOY_USER}@${DEPLOY_HOST}" \
@@ -132,16 +149,21 @@ jobs:
           set -euo pipefail
           DEPLOY_PATH="$1"
           cd "$DEPLOY_PATH"
+          echo "Working in ${DEPLOY_PATH} on the production server."
 
+          echo "Checking that PHP is installed. This site needs PHP 8.3 or newer."
           if ! command -v php >/dev/null 2>&1; then
             echo "PHP 8.3 or newer is required on the server." >&2
             exit 1
           fi
+          php -v | head -n 1
 
           if ! command -v composer >/dev/null 2>&1; then
+            echo "Composer is not on PATH. Downloading the Composer installer for the deploy user."
             mkdir -p "$HOME/.local/bin"
             setup="$(mktemp)"
             SETUP="$setup" php -r 'copy("https://getcomposer.org/installer", getenv("SETUP"));'
+            echo "Comparing the installer with the published Composer checksum."
             expected="$(php -r 'echo trim(file_get_contents("https://composer.github.io/installer.sig"));')"
             actual="$(SETUP="$setup" php -r 'echo hash_file("sha384", getenv("SETUP"));')"
             if [ "$expected" != "$actual" ]; then
@@ -149,33 +171,49 @@ jobs:
               rm -f "$setup"
               exit 1
             fi
+            echo "Checksum matched. Installing Composer into the deploy user's local bin."
             php "$setup" --quiet --install-dir="$HOME/.local/bin" --filename=composer
             rm -f "$setup"
             export PATH="$HOME/.local/bin:$PATH"
+          else
+            echo "Composer is already installed for the deploy user."
           fi
 
           export COMPOSER_NO_INTERACTION=1
           export COMPOSER_ALLOW_SUPERUSER=1
 
+          echo "Composer version on the server:"
           composer --version
+          echo "Installing production dependencies for the site. Development packages are skipped."
           composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader --no-progress --working-dir="$DEPLOY_PATH"
+          echo "Installing production dependencies for the API. Development packages are skipped."
           composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader --no-progress --working-dir="$DEPLOY_PATH/api"
 
+          echo "Checking that the site autoload file, PHPMailer, and the API autoload file were installed."
           test -f "$DEPLOY_PATH/vendor/autoload.php"
           test -f "$DEPLOY_PATH/vendor/phpmailer/phpmailer/src/PHPMailer.php"
           test -f "$DEPLOY_PATH/api/vendor/autoload.php"
+          echo "Installed PHPMailer:"
           composer show --working-dir="$DEPLOY_PATH" phpmailer/phpmailer
+          echo "Production PHP packages are installed for the site and the API."
           REMOTE
 
-      - name: Remove SSH key
+      - name: Delete the temporary SSH key from the runner
         if: always()
         env:
           DEPLOY_KEY_FILE: ${{ env.DEPLOY_KEY_FILE }}
         run: |
           if [ -n "${DEPLOY_KEY_FILE:-}" ]; then
+            echo "Deleting the temporary deploy key from the runner."
             rm -f "$DEPLOY_KEY_FILE"
+            echo "The temporary deploy key has been deleted."
+          else
+            echo "No temporary deploy key was written, so there is nothing to delete."
           fi
 
-      - name: Summary
+      - name: Record what this deploy did
         run: |
-          echo "Deployed merge to main (${{ github.sha }}) and installed Composer packages on the server."
+          echo "Production deploy finished for commit ${{ github.sha }}."
+          echo "The site files were copied to the server."
+          echo "Composer installed production packages for the site and for the API."
+          echo "The temporary SSH key was removed from the runner."

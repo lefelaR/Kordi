@@ -69,6 +69,7 @@ class VenueController
         $extraScripts = [
             '/assets/leaflet/leaflet.js',
             '/assets/js/venue-map.js',
+            '/assets/js/wysiwyg.js',
         ];
 
         ob_start();
@@ -144,6 +145,7 @@ class VenueController
         $extraScripts = [
             '/assets/leaflet/leaflet.js',
             '/assets/js/venue-map.js',
+            '/assets/js/wysiwyg.js',
         ];
 
         ob_start();
@@ -230,7 +232,8 @@ class VenueController
         $location = trim($_POST['location'] ?? '');
         $price = trim($_POST['price'] ?? '');
         $capacity = trim($_POST['capacity'] ?? '');
-        $details = trim($_POST['details'] ?? '');
+        $rawDetails = trim($_POST['details'] ?? '');
+        $details = strlen($rawDetails) > 50000 ? '' : $this->sanitizeRichText($rawDetails);
         $latitude = trim($_POST['latitude'] ?? '');
         $longitude = trim($_POST['longitude'] ?? '');
         $error = '';
@@ -243,7 +246,7 @@ class VenueController
             $error = 'Enter a venue name of 180 characters or fewer.';
         } elseif (strlen($location) > 255) {
             $error = 'Enter a location of 255 characters or fewer.';
-        } elseif (strlen($details) > 5000) {
+        } elseif (strlen($rawDetails) > 50000 || $this->plainTextLength($details) > 5000) {
             $error = 'Enter details of 5000 characters or fewer.';
         } elseif ($price !== '') {
             if (!preg_match('/^\d+(\.\d{1,2})?$/', $price)) {
@@ -298,5 +301,187 @@ class VenueController
             'storedLatitude' => $storedLatitude,
             'storedLongitude' => $storedLongitude,
         ];
+    }
+
+    private function sanitizeRichText(string $html): string
+    {
+        $html = trim($html);
+        if ($html === '') {
+            return '';
+        }
+
+        $document = new \DOMDocument();
+        $previous = libxml_use_internal_errors(true);
+        $loaded = $document->loadHTML(
+            '<?xml encoding="UTF-8"><body>' . $html . '</body>',
+            LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD | LIBXML_NONET
+        );
+        libxml_clear_errors();
+        libxml_use_internal_errors($previous);
+
+        $body = $document->getElementsByTagName('body')->item(0);
+        if ($loaded !== true || !$body instanceof \DOMElement) {
+            return $this->plainParagraph($html);
+        }
+
+        $this->sanitizeChildren($body);
+        $result = '';
+        foreach ($body->childNodes as $child) {
+            $result .= $document->saveHTML($child);
+        }
+        $result = trim($result);
+        if ($result === '' || $this->plainTextLength($result) === 0) {
+            return '';
+        }
+
+        return $result;
+    }
+
+    private function sanitizeChildren(\DOMNode $node): void
+    {
+        $allowed = [
+            'p' => [],
+            'br' => [],
+            'strong' => [],
+            'b' => [],
+            'em' => [],
+            'i' => [],
+            'u' => [],
+            'h2' => [],
+            'ul' => [],
+            'ol' => [],
+            'li' => [],
+            'blockquote' => [],
+            'a' => ['href'],
+        ];
+        $drop = [
+            'script', 'style', 'iframe', 'object', 'embed', 'link', 'meta',
+            'svg', 'math', 'form', 'textarea', 'input', 'button',
+        ];
+        $children = [];
+        foreach ($node->childNodes as $child) {
+            $children[] = $child;
+        }
+
+        foreach ($children as $child) {
+            if ($child instanceof \DOMText) {
+                continue;
+            }
+            if (!$child instanceof \DOMElement || $child->parentNode === null) {
+                $child->parentNode?->removeChild($child);
+                continue;
+            }
+
+            $tag = strtolower($child->tagName);
+            if (in_array($tag, $drop, true)) {
+                $child->parentNode->removeChild($child);
+                continue;
+            }
+
+            $heading = preg_match('/^h[1-6]$/', $tag) === 1;
+            if ($tag === 'div' || ($heading && $tag !== 'h2')) {
+                $replacement = $child->ownerDocument->createElement($tag === 'div' ? 'p' : 'h2');
+                while ($child->firstChild !== null) {
+                    $replacement->appendChild($child->firstChild);
+                }
+                $child->parentNode->replaceChild($replacement, $child);
+                $this->sanitizeChildren($replacement);
+                continue;
+            }
+
+            if (!array_key_exists($tag, $allowed)) {
+                $this->sanitizeChildren($child);
+                $this->unwrap($child);
+                continue;
+            }
+
+            $this->filterAttributes($child, $allowed[$tag]);
+            if ($tag === 'a' && !$child->hasAttribute('href')) {
+                $this->sanitizeChildren($child);
+                $this->unwrap($child);
+                continue;
+            }
+
+            $this->sanitizeChildren($child);
+        }
+    }
+
+    /**
+     * @param  list<string>  $allowed
+     */
+    private function filterAttributes(\DOMElement $element, array $allowed): void
+    {
+        $remove = [];
+        if ($element->attributes !== null) {
+            foreach ($element->attributes as $attribute) {
+                if (!in_array(strtolower($attribute->name), $allowed, true)) {
+                    $remove[] = $attribute->name;
+                }
+            }
+        }
+        foreach ($remove as $name) {
+            $element->removeAttribute($name);
+        }
+
+        if (strtolower($element->tagName) !== 'a') {
+            return;
+        }
+
+        $href = html_entity_decode(trim($element->getAttribute('href')), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $href = preg_replace('/[\x00-\x1F\x7F]/', '', $href) ?? $href;
+        if (!$this->isSafeHref($href)) {
+            $element->removeAttribute('href');
+            return;
+        }
+
+        $element->setAttribute('href', $href);
+        $element->setAttribute('rel', 'noopener noreferrer');
+        if (preg_match('/^https?:/i', $href) === 1) {
+            $element->setAttribute('target', '_blank');
+        }
+    }
+
+    private function unwrap(\DOMNode $node): void
+    {
+        $parent = $node->parentNode;
+        if ($parent === null) {
+            return;
+        }
+
+        while ($node->firstChild !== null) {
+            $parent->insertBefore($node->firstChild, $node);
+        }
+        $parent->removeChild($node);
+    }
+
+    private function isSafeHref(string $href): bool
+    {
+        return preg_match('/^(https?:\/\/|mailto:)/i', $href) === 1
+            && preg_match('/^(javascript|data|vbscript):/i', $href) !== 1;
+    }
+
+    private function plainParagraph(string $html): string
+    {
+        $text = trim(html_entity_decode(strip_tags($html), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+        if ($text === '') {
+            return '';
+        }
+
+        return '<p>' . htmlspecialchars($text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</p>';
+    }
+
+    private function plainTextLength(string $html): int
+    {
+        $withBreaks = preg_replace('/<\s*br\s*\/?\s*>/i', "\n", $html) ?? $html;
+        $withBreaks = preg_replace('/<\/\s*(p|div|h[1-6]|li|blockquote)\s*>/i', "\n", $withBreaks) ?? $withBreaks;
+        $text = html_entity_decode(strip_tags($withBreaks), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $text = trim(str_replace("\xc2\xa0", ' ', $text));
+        if (function_exists('mb_strlen')) {
+            return mb_strlen($text, 'UTF-8');
+        }
+
+        $count = preg_match_all('/./us', $text, $matches);
+
+        return $count === false ? strlen($text) : $count;
     }
 }

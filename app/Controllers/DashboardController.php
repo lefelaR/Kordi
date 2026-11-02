@@ -291,6 +291,7 @@ class DashboardController
         }
 
         if ($section === 'documents' && $subsection === 'invoices') {
+            $requestedInvoiceId = filter_input(INPUT_GET, 'invoice', FILTER_VALIDATE_INT);
             foreach ($this->dashboardApi->companiesAll() as $company) {
                 $companyId = (int) $company['id'];
                 $companyInvoices = [];
@@ -309,10 +310,23 @@ class DashboardController
                 ];
             }
 
-            foreach ($invoiceCompanies as $company) {
-                if ($company['invoices'] !== []) {
-                    $selectedInvoice = $company['invoices'][0];
-                    break;
+            if (is_int($requestedInvoiceId)) {
+                foreach ($invoiceCompanies as $company) {
+                    foreach ($company['invoices'] as $invoice) {
+                        if ($invoice['id'] === $requestedInvoiceId) {
+                            $selectedInvoice = $invoice;
+                            break 2;
+                        }
+                    }
+                }
+            }
+
+            if ($selectedInvoice === null) {
+                foreach ($invoiceCompanies as $company) {
+                    if ($company['invoices'] !== []) {
+                        $selectedInvoice = $company['invoices'][0];
+                        break;
+                    }
                 }
             }
         }
@@ -345,12 +359,20 @@ class DashboardController
                 $companyQuotations = [];
                 foreach ($this->quotations->forCompany($companyId) as $quotation) {
                     $quotationId = (int) $quotation['id'];
-                    $alert = $this->quotationAlert($companyEmail, (string) ($quotation['send_status'] ?? ''));
+                    $sendStatus = (string) ($quotation['send_status'] ?? '');
+                    $status = (string) ($quotation['status'] ?? 'pending');
+                    $alert = $this->quotationAlert($companyEmail, $sendStatus, $status);
+                    $invoiceId = isset($quotation['invoice_id']) && $quotation['invoice_id'] !== null && $quotation['invoice_id'] !== ''
+                        ? (int) $quotation['invoice_id']
+                        : null;
                     $companyQuotations[] = [
                         'id' => $quotationId,
                         'title' => (string) $quotation['title'],
                         'file' => '/quotations/' . $quotationId . '/preview',
-                        'canEdit' => (string) ($quotation['send_status'] ?? '') !== 'sent',
+                        'email' => $companyEmail,
+                        'canEdit' => $sendStatus !== 'sent',
+                        'canApprove' => $sendStatus === 'sent' && $status !== 'approved',
+                        'invoiceId' => $invoiceId,
                         'alertVariant' => $alert['variant'],
                         'alertTitle' => $alert['title'],
                         'alertDescription' => $alert['description'],
@@ -445,8 +467,16 @@ class DashboardController
     /**
      * @return array{variant: string, title: string, description: string}
      */
-    private function quotationAlert(string $email, string $sendStatus): array
+    private function quotationAlert(string $email, string $sendStatus, string $status): array
     {
+        if ($status === 'approved') {
+            return [
+                'variant' => 'dashboard-alert-success',
+                'title' => 'Approved',
+                'description' => 'A 50% deposit invoice was created for this quotation.',
+            ];
+        }
+
         if ($email === '') {
             return [
                 'variant' => 'dashboard-alert-error',
@@ -459,7 +489,7 @@ class DashboardController
             return [
                 'variant' => 'dashboard-alert-success',
                 'title' => 'Sent',
-                'description' => 'This quotation was sent.',
+                'description' => 'This quotation was sent. Approve it to create a 50% deposit invoice.',
             ];
         }
 
