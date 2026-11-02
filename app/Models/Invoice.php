@@ -6,6 +6,8 @@ use PDO;
 
 class Invoice
 {
+    public const DEPOSIT_PERCENTAGE = 50.0;
+
     public function __construct(private PDO $database)
     {
     }
@@ -13,13 +15,15 @@ class Invoice
     public function find(int $id): ?array
     {
         $statement = $this->database->prepare(
-            'SELECT invoices.id, invoices.company_id, invoices.invoice_number, invoices.title,'
-            . ' invoices.event_label, invoices.venue, invoices.amount, invoices.invoice_date,'
+            'SELECT invoices.id, invoices.company_id, invoices.quotation_id, invoices.invoice_number, invoices.title,'
+            . ' invoices.event_label, invoices.venue, invoices.amount, invoices.percentage, invoices.invoice_date,'
             . ' invoices.due_date, invoices.notes, invoices.created_at,'
             . ' companies.name AS company_name, companies.contact AS company_contact,'
-            . ' companies.email AS company_email, companies.phone AS company_phone'
+            . ' companies.email AS company_email, companies.phone AS company_phone,'
+            . ' quotations.quotation_number'
             . ' FROM invoices'
             . ' INNER JOIN companies ON companies.id = invoices.company_id'
+            . ' LEFT JOIN quotations ON quotations.id = invoices.quotation_id'
             . ' WHERE invoices.id = :id'
         );
         $statement->execute(['id' => $id]);
@@ -48,6 +52,66 @@ class Invoice
         $statement->execute(['company_id' => $companyId]);
 
         return $statement->fetchAll();
+    }
+
+    public function depositIdForQuotation(int $quotationId): ?int
+    {
+        $statement = $this->database->prepare(
+            'SELECT id FROM invoices'
+            . ' WHERE quotation_id = :quotation_id AND percentage = :percentage'
+            . ' ORDER BY id ASC LIMIT 1'
+        );
+        $statement->execute([
+            'quotation_id' => $quotationId,
+            'percentage' => self::DEPOSIT_PERCENTAGE,
+        ]);
+        $id = $statement->fetchColumn();
+
+        return $id === false ? null : (int) $id;
+    }
+
+    /**
+     * @param  array<string, mixed>  $quotation
+     */
+    public function createDeposit(array $quotation): int
+    {
+        $total = $this->quotationTotal($quotation);
+        $deposit = round($total * (self::DEPOSIT_PERCENTAGE / 100), 2);
+        $quotationId = (int) $quotation['id'];
+        $quotationNumber = (string) ($quotation['quotation_number'] ?? ('QUO-' . str_pad((string) $quotationId, 3, '0', STR_PAD_LEFT)));
+        $percentageLabel = rtrim(rtrim(number_format(self::DEPOSIT_PERCENTAGE, 2, '.', ''), '0'), '.');
+        $dueDate = substr((string) ($quotation['due_date'] ?? ''), 0, 10);
+        if ($dueDate === '') {
+            $dueDate = date('Y-m-d', strtotime('+7 days'));
+        }
+
+        $title = 'Deposit — ' . (string) $quotation['title'];
+        if (strlen($title) > 180) {
+            $title = substr($title, 0, 180);
+        }
+
+        $eventLabel = trim((string) ($quotation['event_label'] ?? ''));
+        $venue = trim((string) ($quotation['venue'] ?? ''));
+        $notes = trim((string) ($quotation['notes'] ?? ''));
+
+        return $this->create(
+            (int) $quotation['company_id'],
+            $this->nextInvoiceNumber(),
+            $title,
+            $eventLabel === '' ? null : $eventLabel,
+            $venue === '' ? null : $venue,
+            $deposit,
+            date('Y-m-d'),
+            $dueDate,
+            $notes === '' ? null : $notes,
+            [[
+                'description' => $percentageLabel . '% deposit for ' . $quotationNumber,
+                'quantity' => 1.0,
+                'unit_price' => $deposit,
+            ]],
+            $quotationId,
+            self::DEPOSIT_PERCENTAGE,
+        );
     }
 
     public function nextInvoiceNumber(): string
@@ -100,24 +164,28 @@ class Invoice
         ?string $dueDate,
         ?string $notes,
         array $items = [],
+        ?int $quotationId = null,
+        ?float $percentage = null,
     ): int {
         $this->database->beginTransaction();
 
         try {
             $statement = $this->database->prepare(
                 'INSERT INTO invoices ('
-                . ' company_id, invoice_number, title, event_label, venue, amount, invoice_date, due_date, notes'
+                . ' company_id, quotation_id, invoice_number, title, event_label, venue, amount, percentage, invoice_date, due_date, notes'
                 . ') VALUES ('
-                . ' :company_id, :invoice_number, :title, :event_label, :venue, :amount, :invoice_date, :due_date, :notes'
+                . ' :company_id, :quotation_id, :invoice_number, :title, :event_label, :venue, :amount, :percentage, :invoice_date, :due_date, :notes'
                 . ')'
             );
             $statement->execute([
                 'company_id' => $companyId,
+                'quotation_id' => $quotationId,
                 'invoice_number' => $invoiceNumber,
                 'title' => $title,
                 'event_label' => $eventLabel,
                 'venue' => $venue,
                 'amount' => $amount,
+                'percentage' => $percentage,
                 'invoice_date' => $invoiceDate,
                 'due_date' => $dueDate,
                 'notes' => $notes,
@@ -157,5 +225,27 @@ class Invoice
                 'sort_order' => $index,
             ]);
         }
+    }
+
+    /**
+     * @param  array<string, mixed>  $quotation
+     */
+    private function quotationTotal(array $quotation): float
+    {
+        $items = is_array($quotation['items'] ?? null) ? $quotation['items'] : [];
+        if ($items !== []) {
+            $total = 0.0;
+            foreach ($items as $item) {
+                $total += (float) ($item['amount'] ?? ((float) ($item['quantity'] ?? 0) * (float) ($item['unit_price'] ?? 0)));
+            }
+
+            return round($total, 2);
+        }
+
+        if (isset($quotation['amount']) && $quotation['amount'] !== null && $quotation['amount'] !== '') {
+            return round((float) $quotation['amount'], 2);
+        }
+
+        return 0.0;
     }
 }

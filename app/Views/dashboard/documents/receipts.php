@@ -4,6 +4,7 @@
             <h1>Receipts</h1>
             <p>Receipts for events and clients.</p>
         </header>
+        <a class="dashboard-button" href="/receipts/add">new +</a>
     </div>
     <?php if ($receiptCompanies === []): ?>
         <div class="dashboard-panel">
