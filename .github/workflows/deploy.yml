@@ -9,6 +9,7 @@
 #   DEPLOY_PATH      – absolute directory on the server (e.g. /home/user/public_html)
 #
 # Optional secrets:
+#   DEPLOY_PORT      – SSH port (default 22)
 #   FTP_PASSWORD     – unused; deploy connects with CPANEL_SSH_KEY
 #
 # The server needs PHP 8.3 or newer. Composer is installed for the deploy
@@ -49,6 +50,7 @@ jobs:
         env:
           DEPLOY_HOST: ${{ secrets.FTP_SERVER }}
           DEPLOY_SSH_KEY: ${{ secrets.CPANEL_SSH_KEY }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
         run: |
           set -euo pipefail
 
@@ -58,7 +60,12 @@ jobs:
             exit 1
           fi
 
+          PORT="$(printf '%s' "${DEPLOY_PORT:-22}" | tr -d '[:space:]')"
+          if [ -z "$PORT" ]; then
+            PORT=22
+          fi
           HOST="$(printf '%s' "$DEPLOY_HOST" | tr -d '[:space:]')"
+          echo "Using SSH port ${PORT}. Set the DEPLOY_PORT secret when the server does not listen on port 22."
 
           echo "Writing the deploy key to a temporary file on the runner and restricting it to this job."
           KEY_FILE="${RUNNER_TEMP}/deploy_key"
@@ -68,13 +75,18 @@ jobs:
           echo "Recording the production server host key so later SSH commands can verify the server."
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
-          if ! ssh-keyscan -T 15 -H "$HOST" >> ~/.ssh/known_hosts; then
-            echo "::error::Could not collect an SSH host key for ${HOST}. Check that FTP_SERVER is the hostname only, and that the server accepts connections from GitHub-hosted runners."
+          if ! ssh-keyscan -T 15 -p "$PORT" -H "$HOST" >> ~/.ssh/known_hosts; then
+            if [ -z "$(printf '%s' "${DEPLOY_PORT:-}" | tr -d '[:space:]')" ]; then
+              echo "::error::Could not collect an SSH host key on port 22. The DEPLOY_PORT secret is not set. cPanel usually serves SSH on a custom port — add that port as the DEPLOY_PORT secret (cPanel → Security → SSH Access)."
+            else
+              echo "::error::Could not collect an SSH host key on port ${PORT}. Check that FTP_SERVER and DEPLOY_PORT match the host and SSH port, and that the server accepts connections from GitHub-hosted runners."
+            fi
             exit 1
           fi
           echo "The production server host key is trusted for this job."
 
           echo "DEPLOY_KEY_FILE=${KEY_FILE}" >> "$GITHUB_ENV"
+          echo "DEPLOY_SSH_PORT=${PORT}" >> "$GITHUB_ENV"
           echo "SSH is ready. The private key stays on the runner and is removed at the end of the job."
 
       - name: Copy the site files to the production server
@@ -83,6 +95,7 @@ jobs:
           DEPLOY_USER: ${{ secrets.FTP_USERNAME }}
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
           DEPLOY_KEY_FILE: ${{ env.DEPLOY_KEY_FILE }}
+          DEPLOY_SSH_PORT: ${{ env.DEPLOY_SSH_PORT }}
         run: |
           set -euo pipefail
 
@@ -91,8 +104,8 @@ jobs:
             echo "::error::Missing required secret: FTP_SERVER, FTP_USERNAME, or DEPLOY_PATH"
             exit 1
           fi
-          echo "Checking that the SSH key was prepared in the previous step."
-          if [ -z "${DEPLOY_KEY_FILE}" ]; then
+          echo "Checking that the SSH key and port were prepared in the previous step."
+          if [ -z "${DEPLOY_KEY_FILE}" ] || [ -z "${DEPLOY_SSH_PORT}" ]; then
             echo "::error::SSH was not prepared"
             exit 1
           fi
@@ -102,7 +115,7 @@ jobs:
           echo "Leaving out Git metadata, GitHub workflows, editor files, environment files, installed packages, Docker files, scripts, and database init files."
           rsync -az --delete \
             --info=stats2 \
-            -e "ssh -i ${DEPLOY_KEY_FILE} -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes" \
+            -e "ssh -i ${DEPLOY_KEY_FILE} -p ${DEPLOY_SSH_PORT} -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes" \
             --exclude '.git/' \
             --exclude '.github/' \
             --exclude '.cursor/' \
@@ -124,6 +137,7 @@ jobs:
           DEPLOY_USER: ${{ secrets.FTP_USERNAME }}
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
           DEPLOY_KEY_FILE: ${{ env.DEPLOY_KEY_FILE }}
+          DEPLOY_SSH_PORT: ${{ env.DEPLOY_SSH_PORT }}
         run: |
           set -euo pipefail
 
@@ -132,14 +146,14 @@ jobs:
             echo "::error::Missing required secret: FTP_SERVER, FTP_USERNAME, or DEPLOY_PATH"
             exit 1
           fi
-          echo "Checking that the SSH key was prepared before connecting."
-          if [ -z "${DEPLOY_KEY_FILE}" ]; then
+          echo "Checking that the SSH key and port were prepared before connecting."
+          if [ -z "${DEPLOY_KEY_FILE}" ] || [ -z "${DEPLOY_SSH_PORT}" ]; then
             echo "::error::SSH was not prepared"
             exit 1
           fi
 
           echo "Connecting to ${DEPLOY_USER}@${DEPLOY_HOST} to install PHP packages in ${DEPLOY_PATH} and ${DEPLOY_PATH}/api."
-          ssh -T -i "${DEPLOY_KEY_FILE}" \
+          ssh -T -i "${DEPLOY_KEY_FILE}" -p "${DEPLOY_SSH_PORT}" \
             -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes \
             "${DEPLOY_USER}@${DEPLOY_HOST}" \
             "bash -s -- $(printf '%q' "$DEPLOY_PATH")" <<'REMOTE'
