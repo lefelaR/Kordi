@@ -34,6 +34,8 @@ class HomeController
             }
         }
 
+        $currentPage = 'home';
+
         require __DIR__ . '/../Views/home.php';
     }
 }

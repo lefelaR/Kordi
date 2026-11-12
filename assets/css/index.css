@@ -82,6 +82,11 @@ nav a:hover {
 	opacity: 0.6
 }
 
+header nav a[aria-current="page"] {
+	text-decoration: underline;
+	text-underline-offset: 6px;
+}
+
 .menu-toggle {
 	display: none;
 	border: 0;
@@ -2908,5 +2913,201 @@ nav.dashboard-pagination span {
 	nav.dashboard-pagination {
 		flex-direction: column;
 		align-items: flex-start;
+	}
+}
+
+.calendar-section {
+	background: #fff;
+}
+
+.site-calendar {
+	--primary: oklch(0.21 0.006 285.885);
+	--primary-foreground: oklch(0.985 0 0);
+	--foreground: oklch(0.141 0.005 285.823);
+	--muted: oklch(0.967 0.001 286.375);
+	--muted-foreground: oklch(0.552 0.016 285.938);
+	--border: oklch(0.92 0.004 286.32);
+	--card: oklch(1 0 0);
+	--status-planned: oklch(0.95 0.04 85);
+	--status-planned-foreground: oklch(0.42 0.08 75);
+	--status-confirmed: oklch(0.95 0.03 250);
+	--status-confirmed-foreground: oklch(0.4 0.1 255);
+	--status-completed: oklch(0.95 0.04 145);
+	--status-completed-foreground: oklch(0.4 0.08 150);
+	max-width: 1100px;
+	margin: 0 auto;
+	border: 1px solid #eee;
+	overflow: hidden;
+}
+
+.site-calendar-toolbar {
+	display: grid;
+	grid-template-columns: 1fr auto 1fr;
+	align-items: center;
+	gap: 16px;
+	padding: 28px 24px 20px;
+}
+
+.site-calendar-toolbar h2 {
+	font-family: 'Cormorant Garamond', serif;
+	font-size: 32px;
+	font-weight: 400;
+	text-align: center;
+}
+
+.site-calendar-shift {
+	justify-self: start;
+	border: 1px solid #111;
+	border-radius: 25px;
+	padding: 10px 18px;
+	font-size: 12px;
+	letter-spacing: 1px;
+	text-decoration: none;
+	color: #111;
+}
+
+.site-calendar-toolbar .site-calendar-shift:last-child {
+	justify-self: end;
+}
+
+.site-calendar-shift:hover {
+	background: #111;
+	color: #fff;
+	opacity: 1;
+}
+
+.site-calendar button.dashboard-calendar-event {
+	width: 100%;
+	border-top: 0;
+	border-right: 0;
+	border-bottom: 0;
+	font-family: inherit;
+	text-align: left;
+	cursor: pointer;
+}
+
+.event-modal {
+	margin: auto;
+	--status-planned: oklch(0.95 0.04 85);
+	--status-planned-foreground: oklch(0.42 0.08 75);
+	--status-confirmed: oklch(0.95 0.03 250);
+	--status-confirmed-foreground: oklch(0.4 0.1 255);
+	--status-completed: oklch(0.95 0.04 145);
+	--status-completed-foreground: oklch(0.4 0.08 150);
+	width: min(32rem, calc(100% - 2rem));
+	padding: 0;
+	border: 1px solid #eee;
+	background: #fff;
+	color: #111;
+}
+
+.event-modal::backdrop {
+	background: rgba(17, 17, 17, 0.45);
+}
+
+.event-modal-card {
+	padding: 28px;
+}
+
+.event-modal-header {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 16px;
+	margin-bottom: 24px;
+}
+
+.event-modal-header h2 {
+	font-family: 'Cormorant Garamond', serif;
+	font-size: 32px;
+	font-weight: 400;
+	line-height: 1.1;
+}
+
+.event-modal-close {
+	flex: none;
+	border: 1px solid #111;
+	border-radius: 25px;
+	background: #fff;
+	color: #111;
+	padding: 8px 14px;
+	font-family: inherit;
+	font-size: 12px;
+	letter-spacing: 1px;
+	cursor: pointer;
+}
+
+.event-modal-close:hover {
+	background: #111;
+	color: #fff;
+}
+
+.event-modal-details {
+	display: grid;
+	gap: 16px;
+}
+
+.event-modal-details div {
+	display: grid;
+	gap: 4px;
+}
+
+.event-modal-details dt {
+	font-size: 11px;
+	letter-spacing: 1.5px;
+	text-transform: uppercase;
+	opacity: 0.6;
+}
+
+.event-modal-details dd {
+	font-size: 15px;
+	line-height: 1.5;
+}
+
+.event-modal-details dd.is-planned,
+.event-modal-details dd.is-confirmed,
+.event-modal-details dd.is-completed {
+	justify-self: start;
+	padding: 4px 10px;
+	border-radius: 6px;
+	font-size: 13px;
+	font-weight: 500;
+}
+
+.event-modal-details dd.is-planned {
+	background: var(--status-planned);
+	color: var(--status-planned-foreground);
+}
+
+.event-modal-details dd.is-confirmed {
+	background: var(--status-confirmed);
+	color: var(--status-confirmed-foreground);
+}
+
+.event-modal-details dd.is-completed {
+	background: var(--status-completed);
+	color: var(--status-completed-foreground);
+}
+
+.event-modal-actions {
+	margin-top: 24px;
+	padding-top: 20px;
+	border-top: 1px solid #eee;
+}
+
+.event-modal-actions .btn-black {
+	display: inline-block;
+}
+
+@media (max-width: 800px) {
+	.site-calendar-toolbar {
+		grid-template-columns: 1fr;
+		justify-items: center;
+		padding: 20px 12px 16px;
+	}
+
+	.site-calendar-shift,
+	.site-calendar-toolbar .site-calendar-shift:last-child {
+		justify-self: center;
 	}
 }
