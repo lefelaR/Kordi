@@ -53,6 +53,7 @@
                                             data-event-status="<?= htmlspecialchars($event['status'], ENT_QUOTES, 'UTF-8') ?>"
                                             data-event-size="<?= htmlspecialchars($event['size'], ENT_QUOTES, 'UTF-8') ?>"
                                             data-event-tone="<?= htmlspecialchars($event['tone'], ENT_QUOTES, 'UTF-8') ?>"
+                                            <?php if ($event['image'] !== ''): ?>data-event-image="<?= htmlspecialchars($event['image'], ENT_QUOTES, 'UTF-8') ?>"<?php endif; ?>
                                         >
                                             <span><?= htmlspecialchars($event['label'], ENT_QUOTES, 'UTF-8') ?></span>
                                         </button>
@@ -72,6 +73,7 @@
                 <h2 id="event-modal-title" data-event-modal-title></h2>
                 <button type="button" class="event-modal-close" data-event-close aria-label="Close">Close</button>
             </header>
+            <img class="event-modal-image" alt="" data-event-modal-image hidden>
             <dl class="event-modal-details">
                 <div>
                     <dt>Date</dt>

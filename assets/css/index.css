@@ -1514,6 +1514,58 @@ nav.dashboard-breadcrumb .dashboard-breadcrumb-separator svg {
 	font-weight: 400;
 }
 
+.dashboard-image-drop {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	gap: 10px;
+	padding: 12px;
+	border: 1px dashed var(--input);
+	border-radius: var(--radius);
+	background: var(--background);
+}
+
+.dashboard-image-drop.is-dragover {
+	border-color: var(--ring);
+	background: var(--accent);
+}
+
+.dashboard-image-drop-prompt {
+	color: var(--muted-foreground);
+	font-size: 13px;
+	font-weight: 400;
+}
+
+.dashboard-image-error {
+	color: var(--destructive);
+	font-size: 12px;
+	font-weight: 400;
+	line-height: 1.4;
+}
+
+.dashboard-event-image[hidden] {
+	display: none;
+}
+
+.dashboard-event-image {
+	display: block;
+	width: auto;
+	max-width: 100%;
+	max-height: 220px;
+	height: auto;
+	object-fit: contain;
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	background: var(--muted);
+}
+
+.dashboard-field-note {
+	color: var(--muted-foreground);
+	font-size: 12px;
+	font-weight: 400;
+	line-height: 1.4;
+}
+
 .dashboard-form input:focus,
 .dashboard-form select:focus,
 .dashboard-form textarea:focus {
@@ -3015,6 +3067,19 @@ nav.dashboard-pagination span {
 	justify-content: space-between;
 	gap: 16px;
 	margin-bottom: 24px;
+}
+
+.event-modal-image {
+	display: block;
+	width: 100%;
+	max-height: 220px;
+	margin: 0 0 20px;
+	object-fit: cover;
+	border-radius: 6px;
+}
+
+.event-modal-image[hidden] {
+	display: none;
 }
 
 .event-modal-header h2 {

@@ -46,14 +46,14 @@ class Event
     }
 
     /**
-     * @return list<array{id: int, title: string, client: string, location: string, day: int, date: string, status: string, attendants: int}>
+     * @return list<array{id: int, title: string, client: string, location: string, image: string, day: int, date: string, status: string, attendants: int}>
      */
     public function scheduledInMonth(int $year, int $month): array
     {
         $start = sprintf('%04d-%02d-01', $year, $month);
         $end = (new \DateTimeImmutable($start))->modify('first day of next month')->format('Y-m-d');
         $statement = $this->database->prepare(
-            'SELECT id, title, company, location, event_date, status, attendants FROM events'
+            'SELECT id, title, company, location, image, event_date, status, attendants FROM events'
             . ' WHERE event_date IS NOT NULL AND event_date >= :start AND event_date < :end'
             . ' ORDER BY event_date, id'
         );
@@ -70,6 +70,7 @@ class Event
                 'title' => (string) $row['title'],
                 'client' => trim((string) ($row['company'] ?? '')),
                 'location' => trim((string) ($row['location'] ?? '')),
+                'image' => trim((string) ($row['image'] ?? '')),
                 'day' => (int) $date->format('j'),
                 'date' => $date->format('Y-m-d'),
                 'status' => (string) ($row['status'] !== '' ? $row['status'] : 'planned'),
@@ -83,7 +84,7 @@ class Event
     public function find(int $id): ?array
     {
         $statement = $this->database->prepare(
-            'SELECT id, title, company, location, event_date, status, finance, attendants, revenue FROM events WHERE id = :id'
+            'SELECT id, title, company, location, image, event_date, status, finance, attendants, revenue FROM events WHERE id = :id'
         );
         $statement->execute(['id' => $id]);
         $event = $statement->fetch();
@@ -142,6 +143,15 @@ class Event
             'finance' => $finance,
             'attendants' => $attendants,
             'revenue' => $revenue,
+        ]);
+    }
+
+    public function saveImage(int $id, string $path): void
+    {
+        $statement = $this->database->prepare('UPDATE events SET image = :image WHERE id = :id');
+        $statement->execute([
+            'id' => $id,
+            'image' => $path,
         ]);
     }
 

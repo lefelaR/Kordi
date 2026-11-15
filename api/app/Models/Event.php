@@ -12,6 +12,7 @@ class Event extends Model
         'title',
         'company',
         'location',
+        'image',
         'event_date',
         'status',
         'finance',

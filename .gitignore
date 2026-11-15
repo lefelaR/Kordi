@@ -28,6 +28,10 @@
 # macOS metadata
 .DS_Store
 
+# Uploaded event images
+/images/events/*
+!/images/events/.gitkeep
+
 # Logs and local runtime files
 *.log
 *.pid

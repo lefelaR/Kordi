@@ -2,6 +2,7 @@ const dialog = document.querySelector('#event-modal');
 
 if (dialog instanceof HTMLDialogElement) {
 	const title = dialog.querySelector('[data-event-modal-title]');
+	const image = dialog.querySelector('[data-event-modal-image]');
 	const fields = {
 		date: dialog.querySelector('[data-event-field="date"]'),
 		client: dialog.querySelector('[data-event-field="client"]'),
@@ -17,6 +18,18 @@ if (dialog instanceof HTMLDialogElement) {
 			}
 
 			title.textContent = button.dataset.eventTitle ?? '';
+			if (image instanceof HTMLImageElement) {
+				const src = button.dataset.eventImage ?? '';
+				if (src !== '') {
+					image.src = src;
+					image.alt = button.dataset.eventTitle ?? '';
+					image.hidden = false;
+				} else {
+					image.removeAttribute('src');
+					image.alt = '';
+					image.hidden = true;
+				}
+			}
 			Object.entries(fields).forEach(([name, field]) => {
 				if (!(field instanceof HTMLElement)) {
 					return;

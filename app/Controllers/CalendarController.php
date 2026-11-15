@@ -38,11 +38,21 @@ class CalendarController
                 'location' => $event['location'] !== '' ? $event['location'] : '—',
                 'status' => ucfirst($event['status']),
                 'size' => (string) $event['attendants'],
+                'image' => $this->publicEventImage($event['image']),
             ];
         }
         $weeks = $this->weeks($month, $eventsByDay);
 
         require __DIR__ . '/../Views/calendar.php';
+    }
+
+    private function publicEventImage(string $path): string
+    {
+        if (!str_starts_with($path, '/images/events/') || str_contains($path, '..')) {
+            return '';
+        }
+
+        return $path;
     }
 
     private function requestedMonth(): DateTimeImmutable
@@ -60,8 +70,8 @@ class CalendarController
     }
 
     /**
-     * @param array<int, list<array{label: string, tone: string, title: string, date: string, client: string, location: string, status: string, size: string}>> $eventsByDay
-     * @return list<list<array{day: int, outside: bool, today: bool, events: list<array{label: string, tone: string, title: string, date: string, client: string, location: string, status: string, size: string}>}>>
+     * @param array<int, list<array{label: string, tone: string, title: string, date: string, client: string, location: string, status: string, size: string, image: string}>> $eventsByDay
+     * @return list<list<array{day: int, outside: bool, today: bool, events: list<array{label: string, tone: string, title: string, date: string, client: string, location: string, status: string, size: string, image: string}>}>>
      */
     private function weeks(DateTimeImmutable $month, array $eventsByDay): array
     {
