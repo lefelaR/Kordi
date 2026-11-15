@@ -1,13 +1,13 @@
 name: Deploy to kordicraftcreations
 on:
   push:
-    branches: [main]
+    branches: [main, staging]
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Deploy to anissa.aserv.co.za
+      - name: Deploy ${{ github.ref_name }} to anissa.aserv.co.za
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: anissa.aserv.co.za
@@ -16,5 +16,5 @@ jobs:
           port: 21
           protocol: ftps
           security: loose
-          server-dir: public_html/
+          server-dir: ${{ github.ref_name == 'staging' && 'staging/' || 'public_html/' }}
           log-level: verbose
