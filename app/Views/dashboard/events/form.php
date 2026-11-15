@@ -6,13 +6,25 @@
     <?php if ($error !== ''): ?>
         <p class="dashboard-form-error"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></p>
     <?php endif; ?>
-    <form class="dashboard-form dashboard-form-with-details" method="post" action="<?= htmlspecialchars($formAction, ENT_QUOTES, 'UTF-8') ?>" data-event-form>
+    <form class="dashboard-form dashboard-form-with-details" method="post" action="<?= htmlspecialchars($formAction, ENT_QUOTES, 'UTF-8') ?>" enctype="multipart/form-data" data-event-form>
         <input type="hidden" name="page" value="<?= (int) ($eventPage ?? 1) ?>">
         <div class="dashboard-form-fields dashboard-form-card">
             <label>
                 Title
                 <input type="text" name="title" maxlength="180" required value="<?= htmlspecialchars($title, ENT_QUOTES, 'UTF-8') ?>">
             </label>
+            <?php if (!empty($eventId)): ?>
+                <label>
+                    Image
+                    <div class="dashboard-image-drop" data-image-drop>
+                        <img class="dashboard-event-image" src="<?= htmlspecialchars((string) ($eventImage ?? ''), ENT_QUOTES, 'UTF-8') ?>" alt="" data-image-preview<?= empty($eventImage) ? ' hidden' : '' ?>>
+                        <span class="dashboard-image-drop-prompt">Drag an image here, or choose a file</span>
+                        <input type="file" name="image" accept="image/jpeg,image/png,image/webp,image/gif" data-image-input>
+                    </div>
+                    <span class="dashboard-field-note">JPEG, PNG, WebP, or GIF. 5 MB maximum. Leave empty to keep the current image.</span>
+                    <span class="dashboard-image-error" data-image-error hidden></span>
+                </label>
+            <?php endif; ?>
             <label>
                 Company
                 <input type="text" name="company" maxlength="180" value="<?= htmlspecialchars($company ?? '', ENT_QUOTES, 'UTF-8') ?>">

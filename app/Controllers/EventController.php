@@ -147,6 +147,7 @@ class EventController
         $finance = (string) $event['finance'];
         $attendants = (string) $event['attendants'];
         $revenue = $event['revenue'] === null ? '' : (string) $event['revenue'];
+        $eventImage = (string) ($event['image'] ?? '');
         $companyDetails = $this->companyDetailsFor($company);
         $companyContact = $companyDetails['contact'];
         $companyEmail = $companyDetails['email'];
@@ -168,6 +169,13 @@ class EventController
             $revenue = $input['revenue'];
 
             if ($error === '') {
+                $imageError = $this->imageUploadError();
+                if ($imageError !== '') {
+                    $error = $imageError;
+                }
+            }
+
+            if ($error === '') {
                 $this->events->update(
                     $id,
                     $title,
@@ -179,17 +187,26 @@ class EventController
                     $input['attendantCount'],
                     $input['storedRevenue']
                 );
-                $this->saveCompanyDetails(
-                    $input['storedCompany'],
-                    $input['storedCompanyContact'],
-                    $input['storedCompanyEmail'],
-                    $input['storedCompanyPhone']
-                );
-                header('Location: ' . $this->eventsLocation());
-                exit;
+                $storedImage = $this->storeEventImage($id, $eventImage);
+                if ($storedImage['error'] !== '') {
+                    $error = $storedImage['error'];
+                } else {
+                    if ($storedImage['path'] !== null) {
+                        $eventImage = $storedImage['path'];
+                    }
+                    $this->saveCompanyDetails(
+                        $input['storedCompany'],
+                        $input['storedCompanyContact'],
+                        $input['storedCompanyEmail'],
+                        $input['storedCompanyPhone']
+                    );
+                    header('Location: ' . $this->eventsLocation());
+                    exit;
+                }
             }
         }
 
+        $eventId = $id;
         $pageTitle = 'Edit event | Kordicraft Creations';
         $currentSection = 'events';
         $breadcrumbs = [
@@ -202,7 +219,7 @@ class EventController
         $heading = 'Edit event';
         $summary = 'Update this event.';
         $actionIcons = true;
-        $extraScripts = ['/assets/js/event-location.js'];
+        $extraScripts = ['/assets/js/event-location.js', '/assets/js/event-image.js'];
 
         ob_start();
         require __DIR__ . '/../Views/dashboard/events/form.php';
@@ -313,6 +330,86 @@ class EventController
             'email' => (string) ($existing['email'] ?? ''),
             'phone' => (string) ($existing['phone'] ?? ''),
         ];
+    }
+
+    private function imageUploadError(): string
+    {
+        $file = $_FILES['image'] ?? null;
+        if (!is_array($file) || (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
+            return '';
+        }
+
+        $uploadError = (int) ($file['error'] ?? UPLOAD_ERR_OK);
+        if ($uploadError !== UPLOAD_ERR_OK) {
+            return 'The image could not be uploaded. Try a smaller file.';
+        }
+
+        if ((int) ($file['size'] ?? 0) > 5 * 1024 * 1024) {
+            return 'Choose an image that is 5 MB or smaller.';
+        }
+
+        $temporary = (string) ($file['tmp_name'] ?? '');
+        if ($temporary === '' || !is_uploaded_file($temporary)) {
+            return 'The image could not be uploaded.';
+        }
+
+        $mime = (new \finfo(FILEINFO_MIME_TYPE))->file($temporary);
+        if (!in_array($mime, ['image/jpeg', 'image/png', 'image/webp', 'image/gif'], true)) {
+            return 'Choose a JPEG, PNG, WebP, or GIF image.';
+        }
+
+        return '';
+    }
+
+    /**
+     * @return array{error: string, path: ?string}
+     */
+    private function storeEventImage(int $eventId, string $currentPath): array
+    {
+        $file = $_FILES['image'] ?? null;
+        if (!is_array($file) || (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
+            return ['error' => '', 'path' => null];
+        }
+
+        $temporary = (string) ($file['tmp_name'] ?? '');
+        $mime = (new \finfo(FILEINFO_MIME_TYPE))->file($temporary);
+        $extension = [
+            'image/jpeg' => 'jpg',
+            'image/png' => 'png',
+            'image/webp' => 'webp',
+            'image/gif' => 'gif',
+        ][$mime] ?? null;
+        if ($extension === null) {
+            return ['error' => 'Choose a JPEG, PNG, WebP, or GIF image.', 'path' => null];
+        }
+
+        $directory = dirname(__DIR__, 2) . '/images/events';
+        if (!is_dir($directory) && !mkdir($directory, 0755, true) && !is_dir($directory)) {
+            return ['error' => 'The image could not be saved.', 'path' => null];
+        }
+
+        $filename = 'event-' . $eventId . '-' . bin2hex(random_bytes(8)) . '.' . $extension;
+        if (!move_uploaded_file($temporary, $directory . '/' . $filename)) {
+            return ['error' => 'The image could not be saved.', 'path' => null];
+        }
+
+        $path = '/images/events/' . $filename;
+        $this->events->saveImage($eventId, $path);
+        $this->removeStoredEventImage($currentPath, $path);
+
+        return ['error' => '', 'path' => $path];
+    }
+
+    private function removeStoredEventImage(string $currentPath, string $replacement): void
+    {
+        if ($currentPath === '' || $currentPath === $replacement || !str_starts_with($currentPath, '/images/events/')) {
+            return;
+        }
+
+        $fullPath = dirname(__DIR__, 2) . '/images/events/' . basename($currentPath);
+        if (is_file($fullPath)) {
+            unlink($fullPath);
+        }
     }
 
     private function saveCompanyDetails(

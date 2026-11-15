@@ -16,28 +16,7 @@
 
 <body>
 
-    <header>
-        <div class="logo">
-            <div class="logo-mark">
-                <img src="/images/logo.jpeg" alt="Kordicraft Logo"></div>
-            <div class="logo-text">
-                <h1>KORDICRAFT CREATIONS</h1>
-                <p>Where Vision Meets Excellence, Effortlessly</p>
-            </div>
-        </div>
-        <button class="menu-toggle" type="button" aria-label="Open navigation menu" aria-expanded="false" aria-controls="site-navigation">
-            <span></span>
-            <span></span>
-            <span></span>
-        </button>
-        <nav id="site-navigation">
-            <a href="#home">HOME</a>
-            <a href="#who">WHO WE ARE</a>
-            <a href="#what">WHAT WE DO</a>
-            <a href="#contact">CONTACT</a>
-            <a href="#contact" class="btn-black">GET A QUOTE</a>
-        </nav>
-    </header>
+    <?php require __DIR__ . '/includes/site-header.php'; ?>
 
     <div class="hero" id="home">
         <div class="hero-content">

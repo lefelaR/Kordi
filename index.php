@@ -18,6 +18,7 @@ require __DIR__ . '/app/Models/Quotation.php';
 require __DIR__ . '/app/Models/QuotationMailer.php';
 require __DIR__ . '/app/Models/Venue.php';
 require __DIR__ . '/app/Controllers/HomeController.php';
+require __DIR__ . '/app/Controllers/CalendarController.php';
 require __DIR__ . '/app/Controllers/AuthController.php';
 require __DIR__ . '/app/Controllers/DashboardController.php';
 require __DIR__ . '/app/Controllers/EventController.php';
@@ -159,6 +160,9 @@ if ($requestPath === '/login') {
     $invoices = new App\Models\Invoice($database);
     $quotations = new App\Models\Quotation($database);
     (new App\Controllers\DashboardController($auth, $dashboardApi, $invoices, $quotations))->show($matches[1] ?? 'overview');
+} elseif ($requestPath === '/calendar') {
+    $events = new App\Models\Event(App\Config\Database::connection());
+    (new App\Controllers\CalendarController($events))->show();
 } else {
     (new App\Controllers\HomeController(new App\Models\EnquiryMailer($mailTransport)))->handle();
 }

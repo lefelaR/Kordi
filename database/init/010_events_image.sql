@@ -1,0 +1,2 @@
+ALTER TABLE events
+    ADD COLUMN image VARCHAR(255) NULL AFTER location;
